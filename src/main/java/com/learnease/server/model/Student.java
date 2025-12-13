@@ -1,0 +1,47 @@
+package com.learnease.server.model;
+
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+
+//CREATE TABLE student_details (
+//        student_id INT PRIMARY KEY AUTO_INCREMENT,
+//        profile_id INT UNIQUE NOT NULL,
+//        total_courses_enrolled INT DEFAULT 0,
+//        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+//        FOREIGN KEY (profile_id) REFERENCES user_profile(profile_id)
+//        );
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Entity
+@AttributeOverride(name = "id" , column = @Column(name = "student_id"))
+public class Student extends BaseEntity{
+
+
+    @OneToOne
+    @JoinColumn(name = "user_id" , nullable = false)
+    private UserDetails userDetails;
+
+    @Column(columnDefinition = "int default 0")
+    private int totalEnrolledCourses;
+
+    private LocalDateTime lastLoginAt;
+
+    @ManyToMany
+    @JoinTable(name = "student_skills",
+            joinColumns = @JoinColumn(name = "student_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
+    )
+    private Set<Skill> skills = new HashSet<>();
+}
