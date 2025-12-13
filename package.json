@@ -1,0 +1,26 @@
+{
+  "name": "e-learning-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo Warning: no test specified",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/E-LEARNING-WEB-APPLICATION/E-Learning-Backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/E-LEARNING-WEB-APPLICATION/E-Learning-Backend/issues"
+  },
+  "homepage": "https://github.com/E-LEARNING-WEB-APPLICATION/E-Learning-Backend#readme",
+  "description": "",
+  "devDependencies": {
+    "@commitlint/cli": "^20.2.0",
+    "@commitlint/config-conventional": "^20.2.0",
+    "husky": "^9.1.7"
+  }
+}
