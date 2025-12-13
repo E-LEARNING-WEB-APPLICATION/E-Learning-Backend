@@ -1,0 +1,38 @@
+package com.learnease.server.model;
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@Entity
+@AttributeOverride(name = "id", column = @Column(name = "course_id"))
+public class Course extends BaseEntity{
+    @NotNull
+    private String title;
+    @NotNull
+    @Column(length = 500)
+    private String description;
+    @NotNull
+    private double fees;
+    @NotNull
+    private int discount;
+    @NotNull
+    private String thumbnail;
+    @NotNull
+    private String introVideo;
+    @NotNull
+    private int hour;
+    @OneToMany
+    @JoinColumn(name = "section_id")
+    private List<Section> sections = new ArrayList<>();
+}
