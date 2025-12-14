@@ -39,7 +39,7 @@ public class Instructor extends BaseEntity{
     private Set<Specialization> specializations = new HashSet<>();
 
     @OneToMany
-    @JoinColumn(name = "instructor_id")
+    @JoinColumn(name = "instructor_id" , nullable = false)
     private List<Course> courses = new ArrayList<>();
 
 }
