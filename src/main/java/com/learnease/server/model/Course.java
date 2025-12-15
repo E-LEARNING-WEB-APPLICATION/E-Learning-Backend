@@ -34,8 +34,9 @@ public class Course extends BaseEntity{
     private String introVideo;
     @NotNull
     private int hour;
+    // This will create course_id as a foreign key in the section table
     @OneToMany
-    @JoinColumn(name = "section_id")
+    @JoinColumn(name = "course_id")
     private List<Section> sections = new ArrayList<>();
 
     @ManyToMany(mappedBy = "courses")
