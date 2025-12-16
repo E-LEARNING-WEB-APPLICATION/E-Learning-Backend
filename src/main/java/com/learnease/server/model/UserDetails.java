@@ -51,7 +51,7 @@ public class UserDetails extends BaseEntity{
     @Column(length = 300)
     private String profilePic;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "auth_id" , nullable = false)
     private UserAuth userAuth;
 

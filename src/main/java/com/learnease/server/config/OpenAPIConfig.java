@@ -18,5 +18,4 @@ public class OpenAPIConfig {
                         .version("v1.0")
                         .description("API documentation for the LearnEase E-Learning Platform"));
     }
-
 }
