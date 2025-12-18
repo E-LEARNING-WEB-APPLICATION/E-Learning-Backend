@@ -12,7 +12,6 @@ import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +20,9 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
-    UserAuthRepository userAuthRepository; //using this for email check(already exist)
-
-    @Autowired
-    StudentRepository studentRepository; //used to save the entity to the db
-
-    @Autowired
-    PasswordEncoder passwordEncoder; //to encode the password
+    private final UserAuthRepository userAuthRepository; //using this for email check(already exist)
+    private final StudentRepository studentRepository; //used to save the entity to the db
+    private final PasswordEncoder passwordEncoder; //to encode the password
 
     @Override
     public ApiResponse studentRegistrationService(StudentRegisterRequestDto requestDto) {
