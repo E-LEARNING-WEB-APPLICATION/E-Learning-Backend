@@ -1,21 +1,29 @@
 package com.learnease.server.model;
 
 
-//CREATE TABLE user_profile (
-//        profile_id INT PRIMARY KEY AUTO_INCREMENT,
-//        auth_id INT UNIQUE NOT NULL,
-//        fname VARCHAR(50),
-//        lname VARCHAR(50),
-//        dob DATE,
-//        gender ENUM('male','female','other'),
-//        profile_pic VARCHAR(255),
+//CREATE TABLE user_details (
+//        user_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+//        first_name VARCHAR(50) NOT NULL,
+//        last_name VARCHAR(50) NOT NULL,
+//        dob DATE NOT NULL,
+//        bio VARCHAR(500),
+//        gender ENUM('MALE', 'FEMALE', 'OTHER') NOT NULL,
+//        phone_no VARCHAR(15) NOT NULL UNIQUE,
+//        profile_pic VARCHAR(300),
+//        auth_id BIGINT NOT NULL UNIQUE,
 //        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//        FOREIGN KEY (auth_id) REFERENCES auth(auth_id)
+//        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//        CONSTRAINT fk_user_auth
+//        FOREIGN KEY (auth_id)
+//        REFERENCES auth(auth_id)
+//        ON DELETE CASCADE
 //        );
+
 
 import com.learnease.server.model.enums.Gender;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,23 +42,37 @@ import java.util.List;
 @AttributeOverride(name = "id" , column = @Column(name = "user_id"))
 public class UserDetails extends BaseEntity{
 
+    @NotBlank(message = "First name is required")
+    @Size(min = 2, max = 50, message = "First name must be 2–50 characters")
     private String firstName;
+
+    @NotBlank(message = "Last name is required")
+    @Size(min = 2, max = 50, message = "Last name must be 2–50 characters")
     private String lastName;
+
+    @Past(message = "Date of birth must be in the past")
+    @NotNull(message = "Date of birth is required")
     private LocalDate dob;
 
-    @Column(length = 500)
+    @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
 
+    @NotNull(message = "Gender is required")
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @NotNull
-    @Column(nullable = false)
+    @NotBlank(message = "Phone number is required")
+    @Pattern(
+            regexp = "^[0-9]{10}$",
+            message = "Phone number must be a valid 10-digit number"
+    )
+    @Column(nullable = false , unique = true)
     private String phoneNo;
 
-    @Column(length = 300)
+    @Size(max = 300, message = "Profile picture URL too long")
     private String profilePic;
 
+    @NotNull(message = "Auth details are required")
     @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "auth_id" , nullable = false)
     private UserAuth userAuth;
@@ -58,8 +80,10 @@ public class UserDetails extends BaseEntity{
     //Here user_id will be created as a foreign key in the education table
     @OneToMany
     @JoinColumn(name = "user_id")
+    @Valid
     private List<Education> educations = new ArrayList<>();
 
     @Embedded
+    @Valid
     private Address address;
 }
