@@ -51,17 +51,14 @@ public class UserDetails extends BaseEntity{
     private String lastName;
 
     @Past(message = "Date of birth must be in the past")
-    @NotNull(message = "Date of birth is required")
     private LocalDate dob;
 
     @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
 
-    @NotNull(message = "Gender is required")
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @NotBlank(message = "Phone number is required")
     @Pattern(
             regexp = "^[0-9]{10}$",
             message = "Phone number must be a valid 10-digit number"
