@@ -39,3 +39,91 @@ The library attempted to call a constructor that no longer exists in Spring Fram
 ### Solution
 Aligned the `springdoc-openapi` dependency version with Spring Boot 3.x
 by using a compatible version (`springdoc-openapi-starter-webmvc-ui:2.3.0`).
+
+---
+
+# 🐞 ISSUE-003: Swagger breaks after adding `@RestControllerAdvice`
+
+---
+
+## 🧩 Problem
+
+Swagger UI was working correctly in the project.
+
+After adding:
+- `@RestControllerAdvice`
+- Global exception handling
+- DTO validation using `@Valid`
+
+Swagger stopped working and failed when accessing:
+- `/swagger-ui.html`
+- `/v3/api-docs`
+
+The application itself started successfully and APIs worked,  
+but Swagger failed at runtime.
+
+---
+
+## ❌ Error Observed
+
+java.lang.NoSuchMethodError:
+'void org.springframework.web.method.ControllerAdviceBean.<init>(java.lang.Object)'
+
+
+This error occurred only when Swagger tried to generate OpenAPI documentation.
+
+---
+
+## 🔍 Why This Happened
+
+- The project uses **Spring Boot 3.5.x**
+- Spring Boot 3.5.x uses **Spring Framework 6.2.x**
+- The project was using **springdoc-openapi 2.6.0**
+
+When `@RestControllerAdvice` was added:
+- Swagger (springdoc) started scanning global exception handlers
+- While scanning, springdoc internally uses `ControllerAdviceBean`
+- Spring Framework 6.2.x changed the internal constructor of this class
+- springdoc 2.6.0 still expects the old constructor
+
+As a result, Swagger crashed with a `NoSuchMethodError`.
+
+---
+
+## 🤔 Why Swagger Worked Earlier
+
+Swagger was working earlier because:
+- `@RestControllerAdvice` was not present
+- The incompatible Springdoc code path was never executed
+
+Once global exception handling was added,  
+Swagger touched the incompatible internal API and failed.
+
+---
+
+## ❌ What Was NOT the Cause
+
+This issue was **not caused by**:
+- Global exception handler logic
+- DTO validation annotations
+- Spring Security configuration
+- CORS configuration
+- Controller or service code
+
+All of these are correct and valid.
+
+---
+
+## ✅ Solution
+
+Upgrade `springdoc-openapi` to a version compatible with  
+Spring Framework 6.2.x.
+
+### 🔧 Updated Dependency
+
+```xml
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    <version>2.8.5</version>
+</dependency>
