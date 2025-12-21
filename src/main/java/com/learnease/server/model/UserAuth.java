@@ -15,6 +15,7 @@ import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -28,11 +29,11 @@ import lombok.*;
 public class UserAuth extends BaseEntity{
 
     @Email
-    @NotNull
+    @NotBlank
     @Column(length = 100 , unique = true)
     private String email;
 
-    @NotNull
+    @NotBlank
     @Column(length = 300)
     private String password;
 
@@ -43,7 +44,5 @@ public class UserAuth extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @NotNull
     private Status status;
-
-
 
 }
