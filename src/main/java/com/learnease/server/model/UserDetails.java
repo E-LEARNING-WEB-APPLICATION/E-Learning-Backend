@@ -53,9 +53,6 @@ public class UserDetails extends BaseEntity{
     @Past(message = "Date of birth must be in the past")
     private LocalDate dob;
 
-    @Size(max = 500, message = "Bio cannot exceed 500 characters")
-    private String bio;
-
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
