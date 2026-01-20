@@ -3,6 +3,7 @@ package com.learnease.server.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.Accessors;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -11,9 +12,10 @@ import lombok.*;
 @Entity
 @AttributeOverride(name = "id", column = @Column(name = "admin_id"))
 @ToString(exclude = "createdBy")
+@Accessors(chain = true)
 public class Admin extends BaseEntity{
 
-	@OneToOne
+	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(nullable = false, unique = true)
 	@NotNull
 	private UserDetails userDetails;

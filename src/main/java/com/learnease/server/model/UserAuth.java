@@ -17,6 +17,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
+import lombok.experimental.Accessors;
 
 
 @AllArgsConstructor
@@ -25,6 +26,7 @@ import lombok.*;
 @Setter
 @Entity
 @AttributeOverride(name = "id" , column = @Column(name = "auth_id"))
+@Accessors(chain = true)
 public class UserAuth extends BaseEntity{
 
     @Email
