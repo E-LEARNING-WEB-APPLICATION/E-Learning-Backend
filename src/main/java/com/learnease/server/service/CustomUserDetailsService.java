@@ -3,6 +3,7 @@ package com.learnease.server.service;
 import com.learnease.server.model.UserAuth;
 import com.learnease.server.repository.UserAuthRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -18,9 +19,6 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserAuthRepository authRepository;
-    private final User user;
-    private SimpleGrantedAuthority simpleGrantedAuthority;
-
 
     // this is the method that will get the user from the db and provide to DaoAuthenticationProvider
     @Override

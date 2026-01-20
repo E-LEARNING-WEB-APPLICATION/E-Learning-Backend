@@ -45,4 +45,13 @@ public class UserAuth extends BaseEntity{
     @NotNull
     private Status status;
 
+    @Override
+    public String toString() {
+        return "UserAuth{" +
+                "email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", role=" + role +
+                ", status=" + status +
+                '}';
+    }
 }
