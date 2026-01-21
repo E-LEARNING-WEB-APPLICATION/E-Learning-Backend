@@ -5,6 +5,8 @@ import com.learnease.server.model.UserAuth;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,18 +19,21 @@ import java.util.Map;
     that's why we are registering this as a spring managed bean
 */
 @Component
+@AllArgsConstructor
+@NoArgsConstructor
 public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration}")
-    private String expiration;
+    private long expiration;
 
     private SecretKey key;
 
     @PostConstruct
     public void myInit(){
+        System.out.println("Secret" + secret);
         //here we are converting the string key into the SecretKey Object of javax.crypto.SecretKey
         key = Keys.hmacShaKeyFor(secret.getBytes());
     }

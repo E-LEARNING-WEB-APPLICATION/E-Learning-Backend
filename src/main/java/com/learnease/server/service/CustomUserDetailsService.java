@@ -30,14 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .orElseThrow(()-> new UsernameNotFoundException("Email doesn't Exist"));
         System.out.println("Current User : " + myUser.toString());
 
-        List<GrantedAuthority> authorities =
-                List.of(new SimpleGrantedAuthority("ROLE_" + myUser.getRole().toString()));
-
-
-        return new User(
-                myUser.getEmail(),
-                myUser.getPassword(),
-                authorities
-        );
+        return myUser;
     }
 }
