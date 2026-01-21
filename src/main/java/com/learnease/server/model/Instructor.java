@@ -2,6 +2,7 @@ package com.learnease.server.model;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.Set;
 @AttributeOverride(name = "id", column = @Column(name = "instructor_id"))
 public class Instructor extends BaseEntity{
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "user_id" , nullable = false)
     private UserDetails userDetails;
 
@@ -30,6 +31,9 @@ public class Instructor extends BaseEntity{
     private String linkedInUrl;
     private String twitterUrl;
     private double balance;
+
+    @Size(max = 500, message = "Bio cannot exceed 500 characters")
+    private String bio;
 
     @ManyToMany
     @JoinTable(name = "instructor_specialization",

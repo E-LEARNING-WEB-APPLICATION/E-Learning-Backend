@@ -1,17 +1,17 @@
 package com.learnease.server.dto.auth;
 
-
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter
+
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class StudentRegisterRequestDto {
-
+public class InstructorRegisterRequestDto {
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
@@ -34,4 +34,12 @@ public class StudentRegisterRequestDto {
             message = "Phone number must be a valid 10-digit number"
     )
     private String phoneNo;
+
+    @NotNull(message = "Experience is required")
+    @Min(value = 0, message = "Experience cannot be negative")
+    private int experience;
+
+    @NotBlank(message = "Bio is required")
+    @Size(max = 500, message = "Bio cannot exceed 500 characters")
+    private String bio;
 }
