@@ -42,7 +42,7 @@ by using a compatible version (`springdoc-openapi-starter-webmvc-ui:2.3.0`).
 
 ---
 
-# 🐞 ISSUE-003: Swagger breaks after adding `@RestControllerAdvice`
+## 🐞 Issue-003: Swagger breaks after adding `@RestControllerAdvice`
 
 ---
 
@@ -127,3 +127,80 @@ Spring Framework 6.2.x.
     <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
     <version>2.8.5</version>
 </dependency>
+```
+
+## Issue 004: `ClassCastException` during JWT generation after authentication
+
+### Problem
+User authentication was successful, but the application failed at runtime
+while generating the JWT token.
+
+Although login completed correctly, an exception occurred when trying to
+typecast the authenticated principal.
+
+---
+
+### ❌ Error Observed
+
+java.lang.ClassCastException:
+class org.springframework.security.core.userdetails.User
+cannot be cast to class com.learnease.server.model.UserAuth
+
+This error occurred while typecasting:
+
+(UserAuth) fullyAuthenticated.getPrincipal();
+
+---
+
+### 🔍 Cause
+
+`AuthenticationManager.authenticate()` returns an `Authentication` object.
+
+The `principal` inside this object is whatever is returned by
+`loadUserByUsername()`.
+
+Initially, `loadUserByUsername()` was returning Spring Security’s built-in
+user object:
+
+org.springframework.security.core.userdetails.User
+
+Because of this:
+- The authenticated principal was of type `User`
+- The application attempted to cast it to `UserAuth`
+- This resulted in a `ClassCastException`
+
+---
+
+### ⚠️ Additional Issue: Loss of User ID
+
+Spring Security’s default `User` object does not contain the database user ID.
+
+JWT generation required the user ID to add custom claims, but this information
+was lost when returning Spring’s `User` from `loadUserByUsername()`.
+
+As a result:
+- `JwtUtil.generateToken(UserAuth user)` could not be used correctly
+- Custom claims such as `user_id` could not be added safely
+
+---
+
+### ❌ Why Returning Spring’s User Was a Problem
+
+Returning `org.springframework.security.core.userdetails.User` caused:
+- Runtime `ClassCastException` during typecasting
+- Loss of domain-specific fields like `id` and `status`
+- Inability to generate JWT tokens with required custom claims
+
+---
+
+### ✅ Solution
+
+To resolve this issue:
+- The `UserAuth` entity was updated to implement `UserDetails`
+- `loadUserByUsername()` was modified to return the `UserAuth` object directly
+
+This ensured that:
+- The authenticated principal is of type `UserAuth`
+- User ID and other domain fields are preserved
+- JWT generation works correctly
+- No typecasting issues occur
