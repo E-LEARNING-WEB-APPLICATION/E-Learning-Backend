@@ -72,9 +72,6 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(
                         requestDto.getEmail() , requestDto.getPassword()
                 ));
-        System.out.println("Inside Sign In" + fullyAuthenticated.isAuthenticated());
-        System.out.println(fullyAuthenticated.getPrincipal().getClass());
-        System.out.println(fullyAuthenticated.getPrincipal().toString());
         String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
         System.out.println(token);
         return ResponseEntity.status(200)
