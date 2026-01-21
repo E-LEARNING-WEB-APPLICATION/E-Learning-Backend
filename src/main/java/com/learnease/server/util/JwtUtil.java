@@ -2,6 +2,7 @@ package com.learnease.server.util;
 
 
 import com.learnease.server.model.UserAuth;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -51,6 +52,14 @@ public class JwtUtil {
                     "role" , user.getRole().name()))
                 .signWith(key) // Signed with key for signature of jwt
                 .compact(); //generate the token string
+    };
+
+    public Claims getClaims(String jwt){
+        return Jwts.parser()   //parse JWT Token
+                .verifyWith(key) //used same secret key for verification
+                .build()
+                .parseSignedClaims(jwt)
+                .getPayload();
     };
 
 }
