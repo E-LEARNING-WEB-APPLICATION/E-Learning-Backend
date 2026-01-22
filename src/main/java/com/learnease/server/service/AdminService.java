@@ -9,5 +9,5 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 public interface AdminService {
-    public Admin registerAdmin(UUID creatorAdminId, AdminRegisterRequest adminRequest) throws BadRequestException;
+    public Admin registerAdmin(UUID creatorAdminId, AdminRegisterRequest adminRequest);
 }

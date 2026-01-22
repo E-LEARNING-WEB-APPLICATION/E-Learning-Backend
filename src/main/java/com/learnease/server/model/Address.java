@@ -6,12 +6,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Embeddable
+@Accessors(chain = true)
 public class Address {
     private String addressLine1;
     private String addressLine2;
