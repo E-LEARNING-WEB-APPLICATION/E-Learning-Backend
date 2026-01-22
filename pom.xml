@@ -99,8 +99,15 @@
 			<version>0.13.0</version>
 		</dependency>
 
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.25.17</version>
+        </dependency>
 
-	</dependencies>
+
+
+    </dependencies>
 
 	<build>
 		<plugins>
