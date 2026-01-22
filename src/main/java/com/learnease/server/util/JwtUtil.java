@@ -48,7 +48,7 @@ public class JwtUtil {
                 .issuedAt(createdOn) //set issuedAt
                 .expiration(expirationDate) //set Expiration
                 //payload of jwt token - custom claims
-                .claims(Map.of("user_id" , user.getId(),
+                .claims(Map.of("user_id" , user.getId().toString(),
                     "role" , user.getRole().name()))
                 .signWith(key) // Signed with key for signature of jwt
                 .compact(); //generate the token string

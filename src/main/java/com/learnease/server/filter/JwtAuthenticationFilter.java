@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader != null && authHeader.startsWith("Bearer ")){
-            String token = authHeader.substring(7).trim();
+            String token = authHeader.substring(7);
             try {
                 // If token is invalid or expired, an exception will be thrown
                 Claims claims = jwtUtil.getClaims(token);
@@ -45,9 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // This avoids overriding an existing authentication
                 if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
 
+                    //Extract UUID correctly (JWT stores it as String)
+                    UUID userId = UUID.fromString(
+                            claims.get("user_id", String.class));
+
                     // Create a lightweight principal object using JWT data
                     JWTDTO jwtdto = new JWTDTO(
-                            UUID.fromString(claims.get("user_id", String.class)),
+                            userId,
                             email,
                             role
                     );

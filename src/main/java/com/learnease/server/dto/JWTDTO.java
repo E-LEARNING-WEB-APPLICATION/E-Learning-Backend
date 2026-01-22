@@ -13,7 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JWTDTO {
-//    private Long userId;
     private UUID userId;
     private String email;
     private String role;
