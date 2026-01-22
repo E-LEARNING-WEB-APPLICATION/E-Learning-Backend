@@ -204,3 +204,10 @@ This ensured that:
 - User ID and other domain fields are preserved
 - JWT generation works correctly
 - No typecasting issues occur
+
+## Cautions
+
+- #### Using Id from token to get an entity
+Beware when using id from token to get an entity it is possible to mistakenly use findById
+but the id inside jwt token is UserAuthId and not the Id field of that entity thus
+if you use findById and pass the Id from token it will always return null
