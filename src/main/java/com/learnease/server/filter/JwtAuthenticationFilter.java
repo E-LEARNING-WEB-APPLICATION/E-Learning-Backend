@@ -29,7 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain
     ) throws ServletException, IOException {
-        System.out.println("HTTP METHOD = " + request.getMethod());
+        logger.info("HTTP METHOD = " + request.getMethod());
 
         String authHeader = request.getHeader("Authorization");
 
@@ -76,7 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // JWT is invalid, expired, or malformed
                 // We log the error and allow the request to continue
                 // Authorization rules will block access if required
-                System.out.println("JWT validation failed: " + e.getMessage());
+                logger.warn("JWT validation failed: " + e.getMessage());
             }
         }
         //continue filter chain

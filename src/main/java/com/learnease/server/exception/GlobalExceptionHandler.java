@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -73,5 +74,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ApiResponse(false, "Invalid UUID format"));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGenericException(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 }
