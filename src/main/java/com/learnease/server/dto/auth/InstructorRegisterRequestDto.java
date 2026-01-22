@@ -36,8 +36,7 @@ public class InstructorRegisterRequestDto {
     private String phoneNo;
 
     @NotNull(message = "Experience is required")
-    @Min(value = 0, message = "Experience cannot be negative")
-    private int experience;
+    private String experience;
 
     @NotBlank(message = "Bio is required")
     @Size(max = 500, message = "Bio cannot exceed 500 characters")
