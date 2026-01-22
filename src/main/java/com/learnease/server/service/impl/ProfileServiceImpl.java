@@ -18,7 +18,6 @@ import java.util.UUID;
 @Transactional
 public class ProfileServiceImpl implements ProfileService {
 
-    private final UserAuthRepository userAuthRepository;
     private final StudentRepository studentRepository;
     private final UserDetailRepository userDetailRepository;
 
