@@ -19,7 +19,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter
 @Setter
-public class ProfileDto {
+public class StudentProfileResponseDto {
     private String email;
 
     private String firstName;

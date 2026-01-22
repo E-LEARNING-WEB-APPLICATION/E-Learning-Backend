@@ -1,9 +1,9 @@
 package com.learnease.server.service;
 
-import com.learnease.server.dto.student.ProfileDto;
+import com.learnease.server.dto.student.StudentProfileResponseDto;
 
 import java.util.UUID;
 
 public interface ProfileService {
-    public ProfileDto getStudentDetails(Long UserId);
+    public StudentProfileResponseDto getStudentDetails(UUID UserId);
 }
