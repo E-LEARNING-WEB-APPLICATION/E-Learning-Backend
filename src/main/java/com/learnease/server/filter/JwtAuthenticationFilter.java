@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -44,9 +45,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // This avoids overriding an existing authentication
                 if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
 
+                    //Extract UUID correctly (JWT stores it as String)
+                    UUID userId = UUID.fromString(
+                            claims.get("user_id", String.class));
+
                     // Create a lightweight principal object using JWT data
                     JWTDTO jwtdto = new JWTDTO(
-                            claims.get("user_id", Long.class),
+                            userId,
                             email,
                             role
                     );

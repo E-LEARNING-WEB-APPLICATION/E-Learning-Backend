@@ -75,6 +75,6 @@ public class AuthController {
         String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
         System.out.println(token);
         return ResponseEntity.status(200)
-                .body(new LoginResponseDto("Login Successful" , token));
+                .body(new LoginResponseDto( true ,"Login Successful" , token));
     }
 }

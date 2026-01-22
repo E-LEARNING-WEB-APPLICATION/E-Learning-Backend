@@ -28,6 +28,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.List;
 @Entity
 @Table(name = "user_details")
 @AttributeOverride(name = "id" , column = @Column(name = "user_id"))
+@Accessors(chain = true)
 public class UserDetails extends BaseEntity{
 
     @NotBlank(message = "First name is required")

@@ -25,7 +25,7 @@ public class Instructor extends BaseEntity{
     @JoinColumn(name = "user_id" , nullable = false)
     private UserDetails userDetails;
 
-    private int experience;
+    private String experience;
     private double rating;
     private String gitHubUrl;
     private String linkedInUrl;

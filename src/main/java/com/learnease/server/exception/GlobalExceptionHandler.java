@@ -2,7 +2,9 @@ package com.learnease.server.exception;
 
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -19,11 +21,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException e){
-        Map<String, String> map = e.getFieldErrors() // List<FieldErr>
-                .stream() // Stream<FieldErr>
-                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+        String errorMessage = e.getFieldErrors()
+                .get(0)
+                .getDefaultMessage();
 
+        ApiResponse response = new ApiResponse(false, errorMessage);
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
@@ -39,4 +45,11 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiResponse(false , "Invalid Email or Password"));
     };
+
+    @ExceptionHandler(BadClientRequestException.class)
+    public ResponseEntity<?> handleBadRequestException(BadClientRequestException ex){
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
 }
