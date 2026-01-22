@@ -16,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
 
         if(authHeader != null && authHeader.startsWith("Bearer ")){
-            String token = authHeader.substring(7);
+            String token = authHeader.substring(7).trim();
             try {
                 // If token is invalid or expired, an exception will be thrown
                 Claims claims = jwtUtil.getClaims(token);
@@ -46,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     // Create a lightweight principal object using JWT data
                     JWTDTO jwtdto = new JWTDTO(
-                            claims.get("user_id", Long.class),
+                            UUID.fromString(claims.get("user_id", String.class)),
                             email,
                             role
                     );
