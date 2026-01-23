@@ -1,9 +1,11 @@
 package com.learnease.server.service.impl;
 
-import com.learnease.server.dto.notification.CreateNotificationDTO;
+import com.learnease.server.dto.notification.NotificationResponseDTO;
+import com.learnease.server.dto.notification.SendNotificationDTO;
 import com.learnease.server.model.Notification;
+import com.learnease.server.model.NotificationRecipient;
 import com.learnease.server.model.UserAuth;
-import com.learnease.server.model.enums.Role;
+import com.learnease.server.repository.NotificationRecipientRepository;
 import com.learnease.server.repository.NotificationRepository;
 import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.NotificationService;
@@ -11,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,44 +23,65 @@ import java.util.UUID;
 public class NotificationServiceImpl implements NotificationService {
     private final UserAuthRepository userAuthRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationRecipientRepository notificationRecipientRepository;
 
 
+    @Transactional
     @Override
-    public Notification createNotification(CreateNotificationDTO dto) {
-        UserAuth recipient = userAuthRepository.findById(dto.recipientId())
-                .orElseThrow(() -> new IllegalArgumentException("Recipient not found"));
+    public void sendNotification(SendNotificationDTO dto) {
 
-        Notification notification = new Notification();
-        notification.setType(dto.type());
-        notification.setPriority(dto.priority());
-        notification.setTitle(dto.title());
-        notification.setMessage(dto.message());
-        notification.setRecipient(recipient);
-        notification.setActionUrl(dto.actionUrl());
-        notification.setRead(false);
-        notification.setDeleted(false);
+        Notification notification = new Notification()
+                .setType(dto.type())
+                .setPriority(dto.priority())
+                .setTitle(dto.title())
+                .setMessage(dto.message())
+                .setSubjectId(dto.subjectId())
+                .setSubjectType(dto.subjectType());
 
-        return notificationRepository.save(notification);
+        notificationRepository.save(notification);
+
+        List<UserAuth> recipients;
+
+        //If dto has userId set it will get priority over role
+        if (dto.userId() != null) {
+            recipients = List.of(
+                    userAuthRepository.findById(dto.userId())
+                            .orElseThrow(() -> new IllegalArgumentException("User not found"))
+            );
+        } else {
+            recipients = userAuthRepository.findByRole(dto.role());
+        }
+
+        //TODO: think of some elegant solution to solve this n inserts problem
+        recipients.forEach(user -> {
+            NotificationRecipient nr = new NotificationRecipient();
+            nr.setNotification(notification);
+            nr.setRecipient(user);
+            nr.setRead(false);
+            nr.setDeleted(false);
+
+            notificationRecipientRepository.save(nr);
+        });
     }
 
     @Override
-    public Page<Notification> getAdminNotifications(Pageable pageable) {
-        return notificationRepository.findByRecipient_RoleAndDeletedFalse(Role.ADMIN, pageable);
+    public Page<NotificationResponseDTO> getUserNotifications(UUID userAuthId, Pageable pageable) {
+        UserAuth user = userAuthRepository.findById(userAuthId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return notificationRecipientRepository
+                .findByRecipientAndDeletedFalse(user, pageable)
+                .map(nr -> NotificationResponseDTO.from(nr));
     }
 
     @Override
-    public Page<Notification> getAdminUnreadNotifications(Pageable pageable) {
-        return notificationRepository.findByRecipient_RoleAndReadDeletedFalse(Role.ADMIN, false, pageable);
-    }
+    public Page<NotificationResponseDTO> getUserUnreadNotification(UUID userAuthId, Pageable pageable) {
+        UserAuth user = userAuthRepository.findById(userAuthId)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-    @Override
-    public Page<Notification> getUserNotifications(UUID userAuthId, Pageable pageable) {
-        return notificationRepository.findByRecipientIdAndDeletedFalse(userAuthId, pageable);
-    }
-
-    @Override
-    public Page<Notification> getUserUnreadNotification(UUID userAuthId, Pageable pageable) {
-        return notificationRepository.findByRecipientIdAndDeletedFalseAndReadFalse(userAuthId, pageable);
+        return notificationRecipientRepository
+                .findByRecipientAndDeletedFalseAndIsRead(user, false, pageable)
+                .map(nr -> NotificationResponseDTO.from(nr));
     }
 
 }
