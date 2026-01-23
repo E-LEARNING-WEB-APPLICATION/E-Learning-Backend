@@ -24,19 +24,20 @@ public class S3Service {
     @Value("${aws.bucket.name}")
     private String bucketName;
 
-    public String uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file, String folder) throws IOException {
 
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String key = folder + "/" + fileName;   // S3 path
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
-                .key(fileName)
+                .key(key)
                 .contentType(file.getContentType())
                 .build();
 
         s3Client.putObject(request, RequestBody.fromBytes(file.getBytes()));
 
-        return "https://" + bucketName + ".s3.amazonaws.com/" + fileName;
+        return "https://" + bucketName + ".s3.amazonaws.com/" + key;
     }
 
     public String getFileUrl(String fileName) {

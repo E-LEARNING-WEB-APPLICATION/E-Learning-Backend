@@ -47,8 +47,8 @@ public class Instructor extends BaseEntity{
     )
     private Set<Specialization> specializations = new HashSet<>();
 
-    @OneToMany
-    @JoinColumn(name = "instructor_id" , nullable = false)
+    @OneToMany(mappedBy = "instructor", cascade = CascadeType.ALL)
     private List<Course> courses = new ArrayList<>();
+
 
 }
