@@ -1,6 +1,7 @@
 package com.learnease.server.controller;
 
 import com.learnease.server.dto.CategoryRequestDto;
+import com.learnease.server.dto.CategoryUpdateRequestDto;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.Category;
 import com.learnease.server.service.CategoryService;
@@ -12,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -35,9 +38,40 @@ public class CategoryController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<?> getCategory(@RequestParam String categoryName){
-        Category category = categoryService.getCategoryByName(categoryName)
-                .orElseThrow(()-> new ResourceNotFoundException("Category Not found for given name"));
-        return ResponseEntity.ok(category);
+    public ResponseEntity<?> getCategory(
+            @RequestParam(required = false) String categoryName,
+            @RequestParam(required = false) String keyword
+            ){
+        if(categoryName==null && keyword==null){
+            return ResponseEntity.ok(categoryService.getAllCategories());
+        }
+        if(categoryName!=null){
+            Category category = categoryService.getCategoryByName(categoryName)
+                    .orElseThrow(()-> new ResourceNotFoundException("Category Not found for given name"));
+            return ResponseEntity.ok(category);
+        }
+        return ResponseEntity.ok(
+                categoryService.getCategoryByKeyword(keyword)
+        );
     }
+
+
+    @Operation(summary = "Update category")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping(
+            path = "/{categoryId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<?> updateCategory(
+            @PathVariable UUID categoryId,
+            @ModelAttribute @Valid CategoryUpdateRequestDto request
+    ) {
+
+        Category updatedCategory =
+                categoryService.updateCategory(categoryId, request);
+
+        return ResponseEntity.ok(updatedCategory);
+    }
+
+
 }
