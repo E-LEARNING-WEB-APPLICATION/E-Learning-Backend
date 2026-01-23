@@ -2,7 +2,9 @@ package com.learnease.server.controller;
 
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.model.Course;
 import com.learnease.server.service.InstructorService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
@@ -11,13 +13,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/instructor/")
@@ -53,4 +53,14 @@ public class InstructorController {
        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 
     }
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("/getAllInstructorCourses")
+    public ResponseEntity<?> getInstructorCourse(@AuthenticationPrincipal JWTDTO user)
+    {
+        List<CoursesDto> courses = instructorService.getAllCourses(user);
+        return ResponseEntity.ok(courses);
+    }
+
 }
