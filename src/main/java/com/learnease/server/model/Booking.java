@@ -46,8 +46,14 @@ public class Booking extends BaseEntity {
 	@Column(length = 3, nullable = false)
 	private String currency;
 
-	@Column(unique = true, nullable = false)
-	private String paymentReference;
+	@Column(unique = true)
+	private String razorpayOrderId;
+
+	@Column(unique = true)
+	private String razorpayPaymentId;
+
+	@Column(length = 20)
+	private String paymentMethod;
 
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
