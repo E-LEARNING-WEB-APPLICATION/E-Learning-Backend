@@ -27,9 +27,9 @@ public class OpenAPIConfig {
                         .scheme("bearer")
                         .bearerFormat("JWT") // Optional, for documentation purposes
                 )
-        );
+        )
                 // Apply the security globally to all operations (optional)
                 // Or apply it using annotations on specific controllers/methods
-//                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
     }
 }

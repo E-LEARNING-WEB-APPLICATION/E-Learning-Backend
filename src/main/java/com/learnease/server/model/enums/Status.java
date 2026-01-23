@@ -5,6 +5,7 @@ public enum Status {
     INACTIVE,
     SUSPENDED,
     DELETED,
-    PENDING
+    PENDING,
+    REJECTED
 }
 

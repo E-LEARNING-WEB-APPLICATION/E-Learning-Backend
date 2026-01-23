@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -31,6 +33,9 @@ public class Instructor extends BaseEntity{
     private String linkedInUrl;
     private String twitterUrl;
     private double balance;
+    @OneToOne
+    private Admin processedBy;
+    private LocalDateTime processedAt;
 
     @Size(max = 500, message = "Bio cannot exceed 500 characters")
     private String bio;
