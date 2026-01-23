@@ -22,7 +22,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category registerCategory(CategoryRequestDto categoryRequest) {
         try {
-            String imageUrl = s3Service.uploadFile(categoryRequest.getImage());
+            String imageUrl = s3Service.uploadFile(categoryRequest.getImage(),"");
 
             Category category = new Category()
                     .setTitle(categoryRequest.getTitle())

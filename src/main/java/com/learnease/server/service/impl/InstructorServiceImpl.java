@@ -4,8 +4,10 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
+import com.learnease.server.model.UserDetails;
 import com.learnease.server.repository.CourseRepository;
 import com.learnease.server.repository.InstructorRepository;
+import com.learnease.server.repository.UserDetailRepository;
 import com.learnease.server.service.InstructorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class InstructorServiceImpl implements InstructorService {
 
     private final CourseRepository courseRepository;
     private final InstructorRepository instructorRepository;
+    private final UserDetailRepository userDetailRepository;
     private final S3Service s3Service;
 
     @Override
@@ -30,7 +33,9 @@ public class InstructorServiceImpl implements InstructorService {
         String videoPath=null;
         String imagePath =null;
         UUID userId= user.getUserId();
-        Optional<Instructor> instructor = instructorRepository.findById(userId);
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
+                .orElseThrow();
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId()).orElseThrow();
 
         Course course = new Course();
         course.setTitle(courseName);
@@ -38,7 +43,7 @@ public class InstructorServiceImpl implements InstructorService {
         course.setFees(fees);
         course.setDiscount(discountPercentage);
         course.setHour(hour);
-        course.setInstructor(instructor.orElseThrow());
+        course.setInstructor(instructor);
 
         try {
             videoPath =s3Service.uploadFile(video,"course/courseIntroVideo");
