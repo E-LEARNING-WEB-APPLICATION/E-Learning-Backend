@@ -27,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category registerCategory(CategoryRequestDto categoryRequest) {
         try {
-            String imageUrl = s3Service.uploadFile(categoryRequest.getImage());
+            String imageUrl = s3Service.uploadFile(categoryRequest.getImage(),"");
 
             Category category = new Category()
                     .setTitle(categoryRequest.getTitle())
@@ -79,7 +79,7 @@ public class CategoryServiceImpl implements CategoryService {
             }
 
             if (req.getImage() != null && !req.getImage().isEmpty()) {
-                String imageUrl = s3Service.uploadFile(req.getImage());
+                String imageUrl = s3Service.uploadFile(req.getImage(),"course_category_image");
                 category.setCategoryImageUrl(imageUrl);
             }
 
