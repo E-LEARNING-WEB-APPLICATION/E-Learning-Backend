@@ -8,7 +8,6 @@ import java.util.UUID;
 public record CreateNotificationDTO(
         NotificationType type,
         NotificationPriority priority,
-        NotificationAudience receiver,
         String title,
         String message,
         UUID recipientId,

@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +43,21 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Page<Notification> getAdminNotifications(Pageable pageable) {
         return notificationRepository.findByRecipient_RoleAndDeletedFalse(Role.ADMIN, pageable);
+    }
+
+    @Override
+    public Page<Notification> getAdminUnreadNotifications(Pageable pageable) {
+        return notificationRepository.findByRecipient_RoleAndReadDeletedFalse(Role.ADMIN, false, pageable);
+    }
+
+    @Override
+    public Page<Notification> getUserNotifications(UUID userAuthId, Pageable pageable) {
+        return notificationRepository.findByRecipientIdAndDeletedFalse(userAuthId, pageable);
+    }
+
+    @Override
+    public Page<Notification> getUserUnreadNotification(UUID userAuthId, Pageable pageable) {
+        return notificationRepository.findByRecipientIdAndDeletedFalseAndReadFalse(userAuthId, pageable);
     }
 
 }
