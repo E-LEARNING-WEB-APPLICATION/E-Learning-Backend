@@ -62,4 +62,18 @@ public class ProfileController {
         ApiResponse response = profileService.updateEducation(authId,educationRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary = "Delete Education Details")
+    @DeleteMapping("/deleteEducation/{educationId}")
+    public ResponseEntity<?> deleteEducationDetails(@PathVariable UUID educationId,Authentication authentication){
+
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.deleteEducation(authId,educationId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
 }

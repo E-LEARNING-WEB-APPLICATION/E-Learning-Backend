@@ -12,4 +12,6 @@ public interface ProfileService {
     ApiResponse addEducation(UUID authId, EducationRequestDto educationRequestDto);
 
     ApiResponse updateEducation(UUID authId, EducationRequestDto educationRequestDto);
+
+    ApiResponse deleteEducation(UUID authId, UUID educationId);
 }

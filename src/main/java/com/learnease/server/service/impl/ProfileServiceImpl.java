@@ -97,5 +97,27 @@ public class ProfileServiceImpl implements ProfileService {
         return new ApiResponse(true,"Education details updated");
     }
 
+    @Override
+    public ApiResponse deleteEducation(UUID authId, UUID educationId) {
+
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No such user Exist"));
+
+        List<Education> educations = userDetails.getEducations();
+
+        boolean removed = educations.removeIf(
+                edu -> edu.getId().equals(educationId)
+        );
+
+        if (!removed) {
+            throw new ResourceNotFoundException(
+                    "The education details with the provided id does not exist"
+            );
+        }
+
+        userDetailRepository.save(userDetails);
+
+        return new ApiResponse(true, "Education details deleted");
+    }
 
 }
