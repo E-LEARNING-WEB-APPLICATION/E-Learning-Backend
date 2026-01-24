@@ -211,3 +211,12 @@ This ensured that:
 Beware when using id from token to get an entity it is possible to mistakenly use findById
 but the id inside jwt token is UserAuthId and not the Id field of that entity thus
 if you use findById and pass the Id from token it will always return null
+
+- #### UUID representation mismatch (BINARY vs String)
+  Beware when using UUIDs stored as `BINARY(16)` in the database and passing them through APIs.
+  MySQL represents binary UUIDs as hex values (`0x...`), but Spring expects the standard
+  36-character UUID string format (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`).
+  If you pass the `0x...` value to a controller DTO of type `UUID`, deserialization will fail.
+  Always convert database values using `BIN_TO_UUID()` and use UUID strings in Swagger,
+  request bodies, and JWTs.
+
