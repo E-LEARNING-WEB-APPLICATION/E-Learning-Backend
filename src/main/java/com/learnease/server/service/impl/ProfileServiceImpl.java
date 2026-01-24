@@ -12,7 +12,6 @@ import com.learnease.server.repository.StudentRepository;
 import com.learnease.server.repository.UserDetailRepository;
 import com.learnease.server.service.ProfileService;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +76,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(()-> new UserNotFoundException("No such user Exist"));
 
         List<Education> education = userDetails.getEducations();
-        Boolean flag = false;
+        boolean flag = false;
 
         for (Education education1 : education){
             if (education1.getId().equals(educationRequestDto.getId())){
