@@ -66,14 +66,12 @@ public class AuthController {
             UserNamePasswordAuthenticationToken(Object email , Object password)
          */
 
-        System.out.println("Inside Login");
-
         Authentication fullyAuthenticated = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         requestDto.getEmail() , requestDto.getPassword()
                 ));
+        UserAuth userAuth = (UserAuth) fullyAuthenticated.getPrincipal();
         String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
-        System.out.println(token);
         return ResponseEntity.status(200)
                 .body(new LoginResponseDto( true ,"Login Successful" , token));
     }

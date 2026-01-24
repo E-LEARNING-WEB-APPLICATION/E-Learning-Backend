@@ -16,8 +16,14 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "booking", uniqueConstraints = {@UniqueConstraint(name = "UK_student_course_booking",
-		columnNames = {"course_id", "student_id"})})
+@Table(name = "booking",
+		uniqueConstraints = {@UniqueConstraint(name = "UK_student_course_booking",
+				columnNames = {"course_id", "student_id"})},
+		indexes = {
+				@Index(name = "IDX_rzp_order", columnList = "razorpayOrderId"),
+				@Index(name = "IDX_rzp_payment", columnList = "razorpayPaymentId")
+		}
+)
 @AttributeOverride(name = "id", column = @Column(name = "booking_id"))
 public class Booking extends BaseEntity {
 	@ManyToOne
@@ -46,8 +52,14 @@ public class Booking extends BaseEntity {
 	@Column(length = 3, nullable = false)
 	private String currency;
 
-	@Column(unique = true, nullable = false)
-	private String paymentReference;
+	@Column(unique = true)
+	private String razorpayOrderId;
+
+	@Column(unique = true)
+	private String razorpayPaymentId;
+
+	@Column(length = 20)
+	private String paymentMethod;
 
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
