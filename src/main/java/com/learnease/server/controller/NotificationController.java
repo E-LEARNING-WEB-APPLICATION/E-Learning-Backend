@@ -48,11 +48,22 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationByIdAndUserId(notificationId, jwtdto.getUserId()));
     }
 
+    @PatchMapping("/{notificationId}")
     public ResponseEntity<ApiResponse> markNotificationRead(
             @AuthenticationPrincipal JWTDTO jwtdto,
             @PathVariable UUID notificationId
     ) {
         notificationService.updateNotificationRead(jwtdto.getUserId(), notificationId);
         return ResponseEntity.ok(new ApiResponse(true, "notification marked read successfully"));
+    }
+
+    @GetMapping("/count")
+    public ResponseEntity<?> getNotificationCount(
+            @AuthenticationPrincipal JWTDTO jwtdto,
+            @RequestParam(required = false) Boolean includeRead
+    ){
+        return ResponseEntity.ok(
+                notificationService.getNotificationCount(jwtdto.getUserId(), includeRead)
+        );
     }
 }

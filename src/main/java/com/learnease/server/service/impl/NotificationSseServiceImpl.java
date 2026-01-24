@@ -1,5 +1,6 @@
 package com.learnease.server.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnease.server.dto.notification.NotificationPushDTO;
 import com.learnease.server.service.NotificationService;
 import com.learnease.server.service.NotificationSseService;
@@ -15,6 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NotificationSseServiceImpl implements NotificationSseService {
 
     private final Map<UUID, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
+
+    public NotificationSseServiceImpl(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public SseEmitter subscribe(UUID userId) {
@@ -25,6 +31,13 @@ public class NotificationSseServiceImpl implements NotificationSseService {
         emitter.onCompletion(() -> emitters.remove(userId));
         emitter.onTimeout(() -> emitters.remove(userId));
         emitter.onError(e -> emitters.remove(userId));
+
+
+        try {
+            emitter.send(SseEmitter.event().name("INIT").data("connected"));
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
 
         return emitter;
     }

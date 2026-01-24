@@ -41,6 +41,13 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false , "Invalid Email or Password"));
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, ex.getMessage()));
+    }
+
     @ExceptionHandler(BadClientRequestException.class)
     public ResponseEntity<?> handleBadRequestException(BadClientRequestException ex){
         return ResponseEntity
@@ -82,13 +89,6 @@ public class GlobalExceptionHandler {
         ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
-    }
-
-    @ExceptionHandler(UserNotFoundException.class)
-    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 }
