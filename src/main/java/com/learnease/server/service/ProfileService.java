@@ -3,7 +3,9 @@ package com.learnease.server.service;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.Profile.EducationRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.model.Skill;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ProfileService {
@@ -14,4 +16,6 @@ public interface ProfileService {
     ApiResponse updateEducation(UUID authId, EducationRequestDto educationRequestDto);
 
     ApiResponse deleteEducation(UUID authId, UUID educationId);
+
+    List<Skill> getAllSkills();
 }

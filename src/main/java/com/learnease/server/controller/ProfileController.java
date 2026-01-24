@@ -3,7 +3,10 @@ package com.learnease.server.controller;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.Profile.EducationRequestDto;
+import com.learnease.server.dto.Profile.SkillRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.model.Skill;
+import com.learnease.server.repository.SkillsRepository;
 import com.learnease.server.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -15,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -74,6 +78,15 @@ public class ProfileController {
         ApiResponse response = profileService.deleteEducation(authId,educationId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary = "Get All the skills for selection")
+    @GetMapping("/getAllSkill")
+    public ResponseEntity<?> getAllSkills(){
+        List<Skill> skills = profileService.getAllSkills();
+        return ResponseEntity.status(HttpStatus.FOUND).body(skills);
+    }
+
 
 
 }
