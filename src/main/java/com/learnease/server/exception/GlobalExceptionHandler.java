@@ -3,6 +3,7 @@ package com.learnease.server.exception;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.exception.custom_exception.*;
+import com.learnease.server.model.enums.BookingErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,7 +40,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(new ApiResponse(false , "Invalid Email or Password"));
-    }
+    };
 
     @ExceptionHandler(BadClientRequestException.class)
     public ResponseEntity<?> handleBadRequestException(BadClientRequestException ex){
@@ -57,9 +58,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex) {
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ApiResponse(false, ex.getMessage()));
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
@@ -69,26 +68,48 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, "Invalid UUID format"));
     }
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<?> handleGenericException(RuntimeException ex){
-        ex.printStackTrace();
+    @ExceptionHandler(BookingException.class)
+    public ResponseEntity<?> handleBookingException(BookingException ex){
+        HttpStatus status = mapToHttpStatus(ex.getErrorCode()); //used for mapping differnt errorcode with actual http response codes
         return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+                .status(status)
+                .body(new ApiResponse(false, ex.getMessage()));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGenericException(Exception ex){
-        ex.printStackTrace();
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+    private HttpStatus mapToHttpStatus(BookingErrorCode errorCode) {
+
+        return switch (errorCode) {
+
+            case USER_NOT_FOUND -> HttpStatus.UNAUTHORIZED;
+            case USER_NOT_ACTIVE -> HttpStatus.FORBIDDEN;
+            case USER_NOT_STUDENT -> HttpStatus.FORBIDDEN;
+
+            case STUDENT_PROFILE_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case COURSE_NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INSTRUCTOR_NOT_FOUND -> HttpStatus.NOT_FOUND;
+
+            case BOOKING_ALREADY_PAID -> HttpStatus.CONFLICT;
+            case BOOKING_EXPIRED -> HttpStatus.GONE;
+
+            case PAYMENT_ORDER_CREATION_FAILED -> HttpStatus.BAD_GATEWAY;
+            case PAYMENT_VERIFICATION_FAILED -> HttpStatus.BAD_REQUEST;
+
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
     }
+
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGenericException(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 }
