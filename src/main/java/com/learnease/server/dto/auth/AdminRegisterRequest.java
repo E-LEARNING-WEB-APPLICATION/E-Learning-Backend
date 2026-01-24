@@ -17,7 +17,6 @@ public record AdminRegisterRequest(
         Gender gender,
         String phoneNo,
         String bio,
-        String profilePic,
 
         // Address
         AddressDto address
