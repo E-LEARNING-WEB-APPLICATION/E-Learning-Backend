@@ -6,6 +6,7 @@ import com.learnease.server.dto.Profile.SkillRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
+import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Education;
@@ -183,7 +184,7 @@ public class ProfileServiceImpl implements ProfileService {
             profilePicPath = s3Service.uploadFile(profilePic,"ProfilePic");
         }catch (IOException e)
         {
-            return new ApiResponse(false,"Error While Uploading Image");
+            throw new FileStorageException("Error While Uploading Image");
         }
 
         userDetails.setProfilePic(profilePicPath);
