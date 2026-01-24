@@ -7,7 +7,6 @@ import com.learnease.server.dto.Profile.SkillRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
 import com.learnease.server.model.Skill;
-import com.learnease.server.repository.SkillsRepository;
 import com.learnease.server.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
