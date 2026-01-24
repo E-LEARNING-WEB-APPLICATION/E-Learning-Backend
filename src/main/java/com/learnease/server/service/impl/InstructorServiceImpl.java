@@ -1,6 +1,7 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,5 +67,17 @@ public class InstructorServiceImpl implements InstructorService {
        return new ApiResponse(true,"Course Added Successfully");
 
 
+    }
+
+    @Override
+    public List<CoursesDto> getAllCourses(JWTDTO user) {
+        UUID userId= user.getUserId();
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
+                .orElseThrow();
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId()).orElseThrow();
+
+        List<CoursesDto> courses = courseRepository.findByInstructor(instructor.getId());
+
+        return courses;
     }
 }

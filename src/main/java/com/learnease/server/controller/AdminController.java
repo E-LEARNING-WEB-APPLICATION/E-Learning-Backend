@@ -5,14 +5,12 @@ import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.model.Admin;
 import com.learnease.server.model.Instructor;
-import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -73,4 +71,5 @@ public class AdminController {
         adminService.rejectInstructor(admin.getUserId(), id);
         return ResponseEntity.ok(new ApiResponse(true, "Instructor approved"));
     }
+
 }
