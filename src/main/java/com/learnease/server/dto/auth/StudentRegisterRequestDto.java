@@ -30,8 +30,8 @@ public class StudentRegisterRequestDto {
 
     @NotBlank(message = "Phone number is required")
     @Pattern(
-            regexp = "^[0-9]{10}$",
-            message = "Phone number must be a valid 10-digit number"
+            regexp = "^[6-9]\\d{9}$",
+            message = "Phone number must be a valid 10-digit Indian mobile number"
     )
     private String phoneNo;
 }
