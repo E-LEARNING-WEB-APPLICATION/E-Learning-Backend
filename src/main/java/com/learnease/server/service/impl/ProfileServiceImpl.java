@@ -20,7 +20,9 @@ import com.learnease.server.service.ProfileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +35,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserDetailRepository userDetailRepository;
     private final SkillsRepository skillsRepository;
     private final UserAuthRepository userAuthRepository;
+    private final S3Service s3Service;
 
     @Override
     public StudentProfileResponseDto getStudentDetails(UUID authId) {
@@ -167,6 +170,25 @@ public class ProfileServiceImpl implements ProfileService {
         userDetails.setGender(studentProfileRequestDto.getGender());
 
         return new ApiResponse(true, "Profile details Updated");
+    }
+
+    @Override
+    public ApiResponse updateProfilePic(UUID authId, MultipartFile profilePic) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+
+        String profilePicPath = null;
+
+        try {
+            profilePicPath = s3Service.uploadFile(profilePic,"ProfilePic");
+        }catch (IOException e)
+        {
+            return new ApiResponse(false,"Error While Uploading Image");
+        }
+
+        userDetails.setProfilePic(profilePicPath);
+        userDetailRepository.save(userDetails);
+        return new ApiResponse(true, "Profile Pic Updated");
     }
 
 }

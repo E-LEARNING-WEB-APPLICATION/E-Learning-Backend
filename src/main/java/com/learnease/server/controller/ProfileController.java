@@ -15,9 +15,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -110,4 +112,14 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the profile Pic")
+    @PutMapping(value = "/updateProfilePic",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfilePic(@RequestParam MultipartFile profilePic,Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateProfilePic(authId,profilePic);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
 }
