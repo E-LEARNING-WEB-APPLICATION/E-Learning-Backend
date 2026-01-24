@@ -16,7 +16,9 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -28,31 +30,36 @@ public class AdminServiceImpl implements AdminService {
     private final PasswordEncoder passwordEncoder;
     private final AddressMapper addressMapper;
     private final InstructorRepository instructorRepository;
+    private final S3Service s3Service;
 
     @Override
-    public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser) {
-        UserAuth userAuth = new UserAuth()
-                .setEmail(newUser.email())
-                .setPassword(passwordEncoder.encode(newUser.password()))
-                .setRole(Role.ADMIN)
-                .setStatus(Status.ACTIVE);
-        UserDetails userDetails = new UserDetails()
-                .setUserAuth(userAuth)
-                .setFirstName(newUser.firstName())
-                .setLastName(newUser.lastName())
-                .setDob(newUser.dob())
-                .setGender(newUser.gender())
-                .setPhoneNo(newUser.phoneNo())
-                .setProfilePic(newUser.profilePic())
-                .setAddress(addressMapper.toEntity(newUser.address()));
+    public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
+        try {
+            UserAuth userAuth = new UserAuth()
+                    .setEmail(newUser.email())
+                    .setPassword(passwordEncoder.encode(newUser.password()))
+                    .setRole(Role.ADMIN)
+                    .setStatus(Status.ACTIVE);
+            UserDetails userDetails = new UserDetails()
+                    .setUserAuth(userAuth)
+                    .setFirstName(newUser.firstName())
+                    .setLastName(newUser.lastName())
+                    .setDob(newUser.dob())
+                    .setGender(newUser.gender())
+                    .setPhoneNo(newUser.phoneNo())
+                    .setProfilePic(s3Service.uploadFile(profilePic,"profile_pictures"))
+                    .setAddress(addressMapper.toEntity(newUser.address()));
 
 
-        Admin newAdmin = new Admin()
-                .setUserDetails(userDetails)
-                .setCreatedBy(adminRepository.findByUserDetailsUserAuthId(creatorAdminID).orElseThrow(
-                        () -> new BadClientRequestException("creator admin cannot be null")));
+            Admin newAdmin = new Admin()
+                    .setUserDetails(userDetails)
+                    .setCreatedBy(adminRepository.findByUserDetailsUserAuthId(creatorAdminID).orElseThrow(
+                            () -> new BadClientRequestException("creator admin cannot be null")));
 
-        return adminRepository.save(newAdmin);
+            return adminRepository.save(newAdmin);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

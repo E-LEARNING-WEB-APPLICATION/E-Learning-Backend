@@ -81,6 +81,7 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 
+
     @ExceptionHandler(BookingException.class)
     public ResponseEntity<?> handleBookingException(BookingException ex){
         HttpStatus status = mapToHttpStatus(ex.getErrorCode()); //used for mapping differnt errorcode with actual http response codes
@@ -109,5 +110,13 @@ public class GlobalExceptionHandler {
 
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
+    }
+
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 }

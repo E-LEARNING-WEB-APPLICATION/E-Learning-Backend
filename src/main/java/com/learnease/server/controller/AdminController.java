@@ -10,12 +10,14 @@ import com.learnease.server.service.AdminService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -34,10 +36,9 @@ public class AdminController {
     @PostMapping("register")
     public ResponseEntity<?> registerAdmin(
             @AuthenticationPrincipal JWTDTO user,
-            @RequestBody AdminRegisterRequest adminRegisterRequest) {
-
-            System.out.println("userid from token" + user.getUserId());
-            Admin newAdmin = adminService.registerAdmin(user.getUserId(), adminRegisterRequest);
+            @Valid @RequestPart("data") AdminRegisterRequest adminRegisterRequest,
+            @RequestPart("profilePic")MultipartFile profilePic) {
+            Admin newAdmin = adminService.registerAdmin(user.getUserId(), adminRegisterRequest, profilePic);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse(true, "new admin registered successfully!"));
     }

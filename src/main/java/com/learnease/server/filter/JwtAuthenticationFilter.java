@@ -29,7 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain
     ) throws ServletException, IOException {
-        logger.info("HTTP METHOD = " + request.getMethod());
 
         String authHeader = request.getHeader("Authorization");
 
