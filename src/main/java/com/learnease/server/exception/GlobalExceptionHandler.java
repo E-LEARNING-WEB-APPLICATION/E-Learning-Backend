@@ -4,19 +4,13 @@ package com.learnease.server.exception;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.exception.custom_exception.*;
 import com.learnease.server.model.enums.BookingErrorCode;
-import org.apache.coyote.BadRequestException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.nio.file.AccessDeniedException;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -74,14 +68,6 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, "Invalid UUID format"));
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleGenericException(Exception ex){
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
-    }
-
-
     @ExceptionHandler(BookingException.class)
     public ResponseEntity<?> handleBookingException(BookingException ex){
         HttpStatus status = mapToHttpStatus(ex.getErrorCode()); //used for mapping differnt errorcode with actual http response codes
@@ -117,6 +103,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<?> handleGenericException(Exception ex){
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
     }
 }
