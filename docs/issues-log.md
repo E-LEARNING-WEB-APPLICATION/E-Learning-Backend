@@ -211,3 +211,99 @@ This ensured that:
 Beware when using id from token to get an entity it is possible to mistakenly use findById
 but the id inside jwt token is UserAuthId and not the Id field of that entity thus
 if you use findById and pass the Id from token it will always return null
+
+
+## Issue 005: Swagger shows CORS error for multipart file upload
+
+### Problem
+When invoking the `POST /api/v1/instructor/addCourse` API from Swagger UI using
+`multipart/form-data` (image and video upload) along with an `Authorization` header,
+Swagger displays the following error:
+
+Failed to fetch.
+Possible Reasons:
+- CORS
+- Network Failure
+
+Even though this error is shown, backend logs confirm that the request reaches
+the server and JWT authentication succeeds.
+
+---
+
+### Cause
+This issue is caused by a misleading error message from Swagger UI.
+
+Multipart requests with `Authorization` headers trigger a CORS preflight request.
+While CORS is correctly configured in Spring Security, the actual backend failure
+occurs due to the default multipart upload size limit being exceeded.
+
+Backend logs show the following exception:
+
+MaxUploadSizeExceededException: Maximum upload size exceeded
+
+Swagger incorrectly reports this server-side exception as a CORS or network failure.
+
+---
+
+### Solution
+Increase multipart upload limits in `application.yml`:
+
+spring:
+servlet:
+multipart:
+max-file-size: 200MB
+max-request-size: 200MB
+
+Restart the application after applying the configuration.
+
+---
+
+### Result
+- Multipart file uploads work correctly from Swagger UI
+- JWT authentication remains functional
+- No misleading CORS errors are displayed
+- Large file uploads are handled successfully
+
+---
+
+### Key Takeaway
+Swagger UI may display backend errors as CORS failures. Always verify server logs
+to identify the actual root cause.
+
+
+## Issue 006: Hibernate TransientObjectException while adding Education to UserDetails
+
+### Problem
+When attempting to add a new `Education` entry to an existing `UserDetails`
+entity and saving the parent entity, the following error is returned:
+
+org.hibernate.TransientObjectException: persistent instance references an unsaved
+transient instance of 'com.learnease.server.model.Education'
+(save the transient instance before flushing)
+
+The API fails even though the `UserDetails` entity is already persisted.
+
+---
+
+### Cause
+This issue occurs because the `Education` entity is a **new (transient) object**
+that has not yet been saved, while `UserDetails` is a **persistent entity**.
+
+Hibernate does not automatically persist child entities in a `@OneToMany`
+relationship unless **cascade persistence** is explicitly configured.
+
+As a result, Hibernate detects a persistent entity referencing an unsaved
+transient entity and throws a `TransientObjectException`.
+
+---
+
+### Solution
+Enable cascade persistence on the `@OneToMany` relationship in `UserDetails`:
+
+```java
+@OneToMany(
+    cascade = CascadeType.ALL,
+    orphanRemoval = true
+)
+@JoinColumn(name = "user_id")
+private List<Education> educations = new ArrayList<>();

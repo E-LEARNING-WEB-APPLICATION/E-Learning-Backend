@@ -73,8 +73,7 @@ public class UserDetails extends BaseEntity{
     @JoinColumn(name = "auth_id" , nullable = false)
     private UserAuth userAuth;
 
-    //Here user_id will be created as a foreign key in the education table
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     @Valid
     private List<Education> educations = new ArrayList<>();

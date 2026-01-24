@@ -1,18 +1,19 @@
 package com.learnease.server.controller;
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.student.StudentProfileResponseDto;
+import com.learnease.server.dto.Profile.EducationRequestDto;
+import com.learnease.server.dto.Profile.StudentProfileResponseDto;
 import com.learnease.server.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
@@ -34,11 +35,20 @@ public class ProfileController {
     public ResponseEntity<?> getStudentDetails(Authentication authentication){
         //to get the user id from the jwt token
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
-
-        UUID userId = jwt.getUserId();
-
-        StudentProfileResponseDto studentProfileResponseDto = profileService.getStudentDetails(userId);
-
+        UUID authId = jwt.getUserId();
+        StudentProfileResponseDto studentProfileResponseDto = profileService.getStudentDetails(authId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(studentProfileResponseDto);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Post Education details")
+    @PostMapping("/addEducaion")
+    public ResponseEntity<?> addEducationDetails(@RequestBody @Valid EducationRequestDto educationRequestDto , Authentication authentication){
+
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.addEducation(authId,educationRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
