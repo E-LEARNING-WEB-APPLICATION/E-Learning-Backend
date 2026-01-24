@@ -24,9 +24,26 @@ public class S3Service {
     @Value("${aws.bucket.name}")
     private String bucketName;
 
+    private String generateSafeFileName(MultipartFile file) {
+        String originalFilename = file.getOriginalFilename();
+
+        // 1️⃣ Extract extension
+        String extension = "";
+
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename
+                    .substring(originalFilename.lastIndexOf("."))
+                    .toLowerCase();
+        }
+
+        // 2️⃣ Generate safe name
+        return UUID.randomUUID() + extension;
+    }
+
+
     public String uploadFile(MultipartFile file, String folder) throws IOException {
 
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = generateSafeFileName(file);
         String key = folder + "/" + fileName;   // S3 path
 
         PutObjectRequest request = PutObjectRequest.builder()

@@ -69,8 +69,17 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, "Invalid UUID format"));
     }
 
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleGenericException(RuntimeException ex){
+        ex.printStackTrace();
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex){
+        ex.printStackTrace();
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
