@@ -1,4 +1,4 @@
-package com.learnease.server.dto.student;
+package com.learnease.server.dto.Profile;
 
 import com.learnease.server.model.Address;
 import com.learnease.server.model.Education;
