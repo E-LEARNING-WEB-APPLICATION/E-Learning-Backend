@@ -2,7 +2,10 @@ package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.Profile.EducationRequestDto;
+import com.learnease.server.dto.Profile.SkillRequestDto;
+import com.learnease.server.dto.Profile.StudentProfileRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Education;
@@ -11,6 +14,7 @@ import com.learnease.server.model.Student;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.repository.SkillsRepository;
 import com.learnease.server.repository.StudentRepository;
+import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.repository.UserDetailRepository;
 import com.learnease.server.service.ProfileService;
 import jakarta.transaction.Transactional;
@@ -28,6 +32,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final StudentRepository studentRepository;
     private final UserDetailRepository userDetailRepository;
     private final SkillsRepository skillsRepository;
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     public StudentProfileResponseDto getStudentDetails(UUID authId) {
@@ -126,6 +131,42 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public List<Skill> getAllSkills() {
         return skillsRepository.findAll();
+    }
+
+    @Override
+    public ApiResponse updateSkill(UUID authId, SkillRequestDto skillRequestDto) {
+
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        Student  student = studentRepository.findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
+
+        student.getSkills().clear();
+        student.setSkills(skillRequestDto.getSkills());
+
+        studentRepository.save(student);
+
+        return new ApiResponse(true, "Skills details Updated");
+    }
+
+    @Override
+    public ApiResponse updateProfile(UUID authId, StudentProfileRequestDto studentProfileRequestDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        if (userAuthRepository.existsByEmail(studentProfileRequestDto.getEmail())) {
+            if(!userDetails.getUserAuth().getEmail().equals(studentProfileRequestDto.getEmail())){
+                throw new EmailAlreadyExistsException("Email already registered");
+            }
+        }
+        userDetails.setFirstName(studentProfileRequestDto.getFirstName());
+        userDetails.setLastName(studentProfileRequestDto.getLastName());
+        userDetails.setAddress(studentProfileRequestDto.getAddress());
+        userDetails.getUserAuth().setEmail(studentProfileRequestDto.getEmail());
+        userDetails.setPhoneNo(studentProfileRequestDto.getPhoneNo());
+        userDetails.setDob(studentProfileRequestDto.getDob());
+        userDetails.setGender(studentProfileRequestDto.getGender());
+
+        return new ApiResponse(true, "Profile details Updated");
     }
 
 }

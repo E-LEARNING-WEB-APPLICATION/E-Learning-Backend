@@ -4,6 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.Profile.EducationRequestDto;
 import com.learnease.server.dto.Profile.SkillRequestDto;
+import com.learnease.server.dto.Profile.StudentProfileRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
 import com.learnease.server.model.Skill;
 import com.learnease.server.repository.SkillsRepository;
@@ -87,6 +88,26 @@ public class ProfileController {
         return ResponseEntity.status(HttpStatus.FOUND).body(skills);
     }
 
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the skills from the profile")
+    @PutMapping("/updateSkill")
+    public ResponseEntity<?> updateUserSkill(@RequestBody SkillRequestDto skillRequestDto, Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
 
+        ApiResponse response = profileService.updateSkill(authId,skillRequestDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the profile info")
+    @PutMapping("/updateProfile")
+    public ResponseEntity<?> updateProfileInfo(@RequestBody @Valid StudentProfileRequestDto studentProfileRequestDto,Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateProfile(authId,studentProfileRequestDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
 
 }
