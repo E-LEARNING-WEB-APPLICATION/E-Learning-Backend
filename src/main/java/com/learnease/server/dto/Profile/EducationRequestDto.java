@@ -7,12 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 
 public class EducationRequestDto {
+    private UUID id;
     @NotNull(message = "Degree is Required")
     private String degree;
     @NotNull(message = "Field of Study is Required")

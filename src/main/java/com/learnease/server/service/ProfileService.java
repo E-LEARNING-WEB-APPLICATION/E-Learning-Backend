@@ -10,4 +10,6 @@ public interface ProfileService {
      StudentProfileResponseDto getStudentDetails(UUID authId);
 
     ApiResponse addEducation(UUID authId, EducationRequestDto educationRequestDto);
+
+    ApiResponse updateEducation(UUID authId, EducationRequestDto educationRequestDto);
 }

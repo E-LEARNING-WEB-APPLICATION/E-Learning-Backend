@@ -3,6 +3,7 @@ package com.learnease.server.service.impl;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.Profile.EducationRequestDto;
 import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Education;
 import com.learnease.server.model.Student;
@@ -69,4 +70,33 @@ public class ProfileServiceImpl implements ProfileService {
 
         return new ApiResponse(true,"Education details added");
     }
+
+    @Override
+    public ApiResponse updateEducation(UUID authId, EducationRequestDto educationRequestDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(()-> new UserNotFoundException("No such user Exist"));
+
+        List<Education> education = userDetails.getEducations();
+        Boolean flag = false;
+
+        for (Education education1 : education){
+            if (education1.getId().equals(educationRequestDto.getId())){
+                flag = true;
+                education1.setDegree(educationRequestDto.getDegree());
+                education1.setFieldOfStudy(educationRequestDto.getFieldOfStudy());
+                education1.setInstitute(educationRequestDto.getInstitute());
+                education1.setPassingYear(educationRequestDto.getPassingYear());
+            }
+        }
+
+        if (!flag){
+            throw new ResourceNotFoundException("The education details with the provided id does not exist");
+        }
+
+        userDetailRepository.save(userDetails);
+
+        return new ApiResponse(true,"Education details updated");
+    }
+
+
 }

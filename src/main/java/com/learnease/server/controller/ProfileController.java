@@ -51,4 +51,15 @@ public class ProfileController {
         ApiResponse response = profileService.addEducation(authId,educationRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary = "Update Education Details")
+    @PutMapping("/updateEducation")
+    public ResponseEntity<?> updateEducationDetails(@RequestBody @Valid EducationRequestDto educationRequestDto, Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateEducation(authId,educationRequestDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }
