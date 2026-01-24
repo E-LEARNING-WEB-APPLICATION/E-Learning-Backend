@@ -5,8 +5,11 @@ import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.notification.NotificationResponseDTO;
 import com.learnease.server.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.converters.models.PageableAsQueryParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,12 +23,13 @@ import java.util.UUID;
 public class NotificationController {
     private final NotificationService notificationService;
 
-    @GetMapping("/")
+    @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN','STUDENT','INSTRUCTOR')")
+    @PageableAsQueryParam
     public Page<NotificationResponseDTO> getUserNotifications(
             @AuthenticationPrincipal JWTDTO dto,
             @RequestParam(required = false) Boolean isRead,
-            Pageable pageable
+            @RequestParam(required = false) Pageable pageable
     ) {
         if (isRead != null && !isRead) {
             return notificationService.getUserUnreadNotification(dto.getUserId(), pageable);
