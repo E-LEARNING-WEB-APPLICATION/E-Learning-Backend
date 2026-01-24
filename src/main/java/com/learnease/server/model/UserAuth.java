@@ -47,7 +47,7 @@ public class UserAuth extends BaseEntity implements UserDetails {
         return "UserAuth{" +
                 "email='" + email + '\'' +
                 ", role=" + role +
-                ", UserId=" + getId() +
+                ", AuthId=" + getId() +
                 '}';
     }
 
