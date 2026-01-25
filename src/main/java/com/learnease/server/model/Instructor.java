@@ -23,7 +23,7 @@ import java.util.Set;
 @AttributeOverride(name = "id", column = @Column(name = "instructor_id"))
 public class Instructor extends BaseEntity{
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id" , nullable = false)
     private UserDetails userDetails;
 
@@ -33,7 +33,7 @@ public class Instructor extends BaseEntity{
     private String linkedInUrl;
     private String twitterUrl;
     private double balance;
-    @OneToOne
+    @ManyToOne
     private Admin processedBy;
     private LocalDateTime processedAt;
 
