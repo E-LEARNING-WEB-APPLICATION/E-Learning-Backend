@@ -1,6 +1,7 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.course.CourseResponseDto;
+import com.learnease.server.dto.course.DashboardCoursesResponseDto;
 import com.learnease.server.exception.custom_exception.CourseNotFoundException;
 import com.learnease.server.model.Course;
 import com.learnease.server.repository.CourseRepository;
@@ -10,6 +11,7 @@ import com.learnease.server.util.mappers.CourseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,5 +36,23 @@ public class CourseServiceImpl implements CourseService {
         Long numberOfReviews = (Long) ratingSummary[1];
 
         return courseMapper.toCourseResponseDto(course , rating , numberOfReviews);
+    }
+
+    @Override
+    public List<DashboardCoursesResponseDto> getAllCourses() {
+        return courseRepository.findDashboardCourses()
+                .stream()
+                .map(p -> new DashboardCoursesResponseDto(
+                        p.getId(),
+                        p.getCategoryId(),
+                        p.getThumbnail(),
+                        p.getTitle(),
+                        p.getFees(),
+                        p.getRating(),
+                        p.getReviews(),
+                        p.getDuration(),
+                        p.getDiscount()
+                ))
+                .toList();
     }
 }
