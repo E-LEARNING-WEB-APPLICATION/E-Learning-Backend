@@ -31,13 +31,13 @@ public class CategoryController {
      * - Request contains a file upload
      * - Without this, Spring may reject the request with 415 error
      */
-    @PostMapping(path = "/",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createCategory(@ModelAttribute @Valid CategoryRequestDto categoryRequest){
         Category category = categoryService.registerCategory(categoryRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(category);
     }
 
-    @GetMapping("/")
+    @GetMapping
     public ResponseEntity<?> getCategory(
             @RequestParam(required = false) String categoryName,
             @RequestParam(required = false) String keyword
