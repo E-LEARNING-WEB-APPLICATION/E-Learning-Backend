@@ -46,7 +46,7 @@ public class ProfileController {
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Post Education details")
-    @PostMapping("/addEducation")
+    @PostMapping(value = "/addEducation")
     public ResponseEntity<?> addEducationDetails(@RequestBody @Valid EducationRequestDto educationRequestDto , Authentication authentication){
 
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();

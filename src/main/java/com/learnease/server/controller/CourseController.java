@@ -1,6 +1,7 @@
 package com.learnease.server.controller;
 
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.course.CourseResponseDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,6 +64,23 @@ public class CourseController {
     public ResponseEntity<?> getCategoryCourse(@PathVariable UUID categoryId){
         List<DashboardCoursesResponseDto> list = courseService.getCategoryCourses(categoryId);
         return ResponseEntity.status(HttpStatus.FOUND).body(list);
+    }
+    @Operation(
+            summary = "Get course payment status by ID",
+            description = "Fetch if the course is purchased/free or not purchased "
+    )
+    @GetMapping("/courseStatus/{courseId}")
+    public ResponseEntity<?> getCourseStatus(
+            @PathVariable UUID courseId,
+            Authentication authentication
+    ){
+
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+        ApiResponse response = courseService.getCoursePaymentStatus(courseId,authId);
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(response);
     }
 
 }

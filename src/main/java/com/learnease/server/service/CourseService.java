@@ -1,5 +1,6 @@
 package com.learnease.server.service;
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.course.CourseResponseDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
 
@@ -13,4 +14,6 @@ public interface CourseService {
     List<DashboardCoursesResponseDto> getAllCourses();
 
     List<DashboardCoursesResponseDto> getCategoryCourses(UUID categoryId);
+
+    ApiResponse getCoursePaymentStatus(UUID courseId, UUID authId);
 }
