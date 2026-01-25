@@ -2,7 +2,7 @@ package com.learnease.server.controller;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.Profile.*;
+import com.learnease.server.dto.profile.*;
 import com.learnease.server.model.Skill;
 import com.learnease.server.model.Specialization;
 import com.learnease.server.service.ProfileService;

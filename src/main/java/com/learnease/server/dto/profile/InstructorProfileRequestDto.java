@@ -1,7 +1,6 @@
-package com.learnease.server.dto.Profile;
+package com.learnease.server.dto.profile;
 
 import com.learnease.server.model.Address;
-import com.learnease.server.model.Education;
 import com.learnease.server.model.enums.Gender;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,18 +10,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.aspectj.lang.annotation.Before;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-
-public class StudentProfileRequestDto {
+public class InstructorProfileRequestDto {
     @NotBlank(message = "Email can not be blank")
     private String email;
     @NotBlank(message = "First Name is required")
@@ -42,5 +37,12 @@ public class StudentProfileRequestDto {
     private String phoneNo;
     @NotNull(message = "Address must be filled")
     private Address address;
+    @NotNull(message = "bio must be filled")
+    private String bio;
+    @NotNull(message = "experience must be filled")
+    private String experience;
+    private String gitHubUrl;
+    private String linkedInUrl;
+    private String twitterUrl;
 
 }

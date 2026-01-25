@@ -1,7 +1,7 @@
 package com.learnease.server.service;
 
 import com.learnease.server.dto.ApiResponse;
-import com.learnease.server.dto.Profile.*;
+import com.learnease.server.dto.profile.*;
 import com.learnease.server.model.Skill;
 import com.learnease.server.model.Specialization;
 import jakarta.validation.Valid;

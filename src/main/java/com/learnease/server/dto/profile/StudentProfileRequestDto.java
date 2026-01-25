@@ -1,4 +1,4 @@
-package com.learnease.server.dto.Profile;
+package com.learnease.server.dto.profile;
 
 import com.learnease.server.model.Address;
 import com.learnease.server.model.enums.Gender;
@@ -17,7 +17,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Getter
 @Setter
-public class InstructorProfileRequestDto {
+
+public class StudentProfileRequestDto {
     @NotBlank(message = "Email can not be blank")
     private String email;
     @NotBlank(message = "First Name is required")
@@ -37,12 +38,5 @@ public class InstructorProfileRequestDto {
     private String phoneNo;
     @NotNull(message = "Address must be filled")
     private Address address;
-    @NotNull(message = "bio must be filled")
-    private String bio;
-    @NotNull(message = "experience must be filled")
-    private String experience;
-    private String gitHubUrl;
-    private String linkedInUrl;
-    private String twitterUrl;
 
 }

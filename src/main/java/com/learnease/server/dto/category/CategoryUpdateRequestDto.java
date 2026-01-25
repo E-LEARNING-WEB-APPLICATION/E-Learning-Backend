@@ -1,4 +1,4 @@
-package com.learnease.server.dto;
+package com.learnease.server.dto.category;
 
 import jakarta.validation.constraints.Size;
 import lombok.Getter;

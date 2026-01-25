@@ -1,6 +1,7 @@
 package com.learnease.server.dto;
 
 
+import com.learnease.server.dto.category.CategoryResponseDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

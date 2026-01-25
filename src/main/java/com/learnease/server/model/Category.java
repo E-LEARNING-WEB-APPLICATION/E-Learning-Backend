@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
@@ -37,4 +39,7 @@ public class Category extends BaseEntity{
     private Set<String> keywords = new HashSet<>();
 
     private String categoryImageUrl;
+
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private List<Course> courses = new ArrayList<>();
 }

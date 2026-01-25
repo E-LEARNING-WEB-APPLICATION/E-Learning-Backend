@@ -1,4 +1,4 @@
-package com.learnease.server.dto.Profile;
+package com.learnease.server.dto.profile;
 
 
 import jakarta.validation.constraints.NotNull;

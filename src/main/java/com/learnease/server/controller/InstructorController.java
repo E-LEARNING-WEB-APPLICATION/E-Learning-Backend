@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/instructor/")
@@ -39,13 +40,14 @@ public class InstructorController {
             @RequestParam double fees,
             @RequestParam int discountPercentage,
             @RequestParam int hour,
+            @RequestParam UUID categoryId,
             @RequestParam MultipartFile image,
             @RequestParam MultipartFile video,
             @AuthenticationPrincipal JWTDTO user
     )
     {
 
-       ApiResponse response = instructorService.addCourse(courseName,courseDesc, fees, discountPercentage, hour, image, video, user);
+       ApiResponse response = instructorService.addCourse(courseName,courseDesc, fees, discountPercentage, hour, categoryId,image, video, user);
        if(response.isSuccess())
        {
            return ResponseEntity.status(HttpStatus.CREATED).body(response);
