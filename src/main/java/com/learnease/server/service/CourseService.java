@@ -11,4 +11,6 @@ public interface CourseService {
     CourseResponseDto getCourseById(UUID courseId);
 
     List<DashboardCoursesResponseDto> getAllCourses();
+
+    List<DashboardCoursesResponseDto> getCategoryCourses(UUID categoryId);
 }

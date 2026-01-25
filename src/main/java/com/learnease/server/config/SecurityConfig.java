@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/user/auth/**",
                                 "/api/v1/category/",
                                 "/api/v1/courses/allCourses",
+                                "/api/v1/courses/getCategoryCourses/{categoryId}",
                                 "/api/v1/notifications/stream"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()

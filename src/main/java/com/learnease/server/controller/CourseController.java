@@ -54,5 +54,14 @@ public class CourseController {
         List<DashboardCoursesResponseDto> list = courseService.getAllCourses();
         return ResponseEntity.status(HttpStatus.FOUND).body(list);
     }
+    @Operation(
+            summary = "Get all Courses of given Category",
+            description = "Fetch all the courses that are present for the given category id"
+    )
+    @GetMapping("/getCategoryCourses/{categoryId}")
+    public ResponseEntity<?> getCategoryCourse(@PathVariable UUID categoryId){
+        List<DashboardCoursesResponseDto> list = courseService.getCategoryCourses(categoryId);
+        return ResponseEntity.status(HttpStatus.FOUND).body(list);
+    }
 
 }

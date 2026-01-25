@@ -55,4 +55,22 @@ public class CourseServiceImpl implements CourseService {
                 ))
                 .toList();
     }
+
+    @Override
+    public List<DashboardCoursesResponseDto> getCategoryCourses(UUID categoryId) {
+        return courseRepository.findDashboardCoursesByCategoryId(categoryId)
+                .stream()
+                .map(p -> new DashboardCoursesResponseDto(
+                        p.getId(),
+                        p.getCategoryId(),
+                        p.getThumbnail(),
+                        p.getTitle(),
+                        p.getFees(),
+                        p.getRating(),
+                        p.getReviews(),
+                        p.getDuration(),
+                        p.getDiscount()
+                ))
+                .toList();
+    }
 }
