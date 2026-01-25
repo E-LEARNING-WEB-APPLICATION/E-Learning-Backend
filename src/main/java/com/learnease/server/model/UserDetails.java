@@ -69,7 +69,7 @@ public class UserDetails extends BaseEntity{
     private String profilePic;
 
     @NotNull(message = "Auth details are required")
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "auth_id" , nullable = false)
     private UserAuth userAuth;
 

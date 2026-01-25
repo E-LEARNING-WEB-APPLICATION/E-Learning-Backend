@@ -1,5 +1,6 @@
 package com.learnease.server.service;
 
+import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.model.Admin;
 import com.learnease.server.model.Instructor;
@@ -14,7 +15,8 @@ import java.util.UUID;
 
 public interface AdminService {
     public Admin registerAdmin(UUID creatorAdminId, AdminRegisterRequest adminRequest, MultipartFile profilePic);
-    public List<Instructor> getInstructorByStatus(Status status);
+    public List<InstructorResponseDto> getInstructorByStatus(Status status);
+    public long getInstructorCountByStatus(Status status);
     public Instructor approveInstructor(UUID adminId, UUID instructorID);
     public Instructor rejectInstructor(UUID adminId, UUID instructorID);
 }

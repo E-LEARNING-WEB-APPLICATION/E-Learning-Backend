@@ -1,6 +1,7 @@
 package com.learnease.server.controller;
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.model.Admin;
@@ -43,17 +44,27 @@ public class AdminController {
                     .body(new ApiResponse(true, "new admin registered successfully!"));
     }
 
+    @Operation(summary =  "get all instructor count by status, add status param PENDING to get pending instructors count")
+    @GetMapping("/instructors/count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getInstructorsCountByStatus(
+            @RequestParam(name = "status", required = false) Status status
+    ) {
+        long instructorCount = adminService.getInstructorCountByStatus(status);
+        return ResponseEntity.ok(new ApiResponse<>(true, instructorCount));
+    }
+
     @Operation(summary =  "get all instructors by status, add status param PENDING to get pending instructors")
     @GetMapping("/instructors")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getInstructorsByStatus(
             @RequestParam(name = "status", required = false) Status status
     ) {
-        List<Instructor> instructors = adminService.getInstructorByStatus(status);
+        List<InstructorResponseDto> instructors = adminService.getInstructorByStatus(status);
         return ResponseEntity.ok(instructors);
     }
 
-    @PostMapping("/instructors/{id}/approve")
+    @PutMapping("/instructors/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> approveInstructor(
             @AuthenticationPrincipal JWTDTO admin,
@@ -63,7 +74,7 @@ public class AdminController {
         return ResponseEntity.ok(new ApiResponse(true, "Instructor approved"));
     }
 
-    @PostMapping("/instructors/{id}/reject")
+    @PutMapping("/instructors/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> rejectInstructor(
             @AuthenticationPrincipal JWTDTO admin,
