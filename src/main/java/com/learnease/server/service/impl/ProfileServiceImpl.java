@@ -1,22 +1,13 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
-import com.learnease.server.dto.Profile.EducationRequestDto;
-import com.learnease.server.dto.Profile.SkillRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.dto.Profile.*;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
 import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
-import com.learnease.server.model.Education;
-import com.learnease.server.model.Skill;
-import com.learnease.server.model.Student;
-import com.learnease.server.model.UserDetails;
-import com.learnease.server.repository.SkillsRepository;
-import com.learnease.server.repository.StudentRepository;
-import com.learnease.server.repository.UserAuthRepository;
-import com.learnease.server.repository.UserDetailRepository;
+import com.learnease.server.model.*;
+import com.learnease.server.repository.*;
 import com.learnease.server.service.ProfileService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +26,10 @@ public class ProfileServiceImpl implements ProfileService {
     private final StudentRepository studentRepository;
     private final UserDetailRepository userDetailRepository;
     private final SkillsRepository skillsRepository;
+    private final SpecializationRepository specializationRepository;
     private final UserAuthRepository userAuthRepository;
     private final S3Service s3Service;
+    private final InstructorRepository instructorRepository;
 
     @Override
     public StudentProfileResponseDto getStudentDetails(UUID authId) {
@@ -154,7 +147,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ApiResponse updateProfile(UUID authId, StudentProfileRequestDto studentProfileRequestDto) {
+    public ApiResponse updateStudentProfile(UUID authId, StudentProfileRequestDto studentProfileRequestDto) {
         UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
                 .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
         if (userAuthRepository.existsByEmail(studentProfileRequestDto.getEmail())) {
@@ -190,6 +183,85 @@ public class ProfileServiceImpl implements ProfileService {
         userDetails.setProfilePic(profilePicPath);
         userDetailRepository.save(userDetails);
         return new ApiResponse(true, "Profile Pic Updated");
+    }
+
+    @Override
+    public InstructorProfileResponseDto getInstructorDetails(UUID authId) {
+
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
+        InstructorProfileResponseDto instructorProfileResponseDto = new InstructorProfileResponseDto();
+
+        instructorProfileResponseDto.setFirstName(userDetails.getFirstName());
+        instructorProfileResponseDto.setLastName(userDetails.getLastName());
+        instructorProfileResponseDto.setAddress(userDetails.getAddress());
+        instructorProfileResponseDto.setEmail(userDetails.getUserAuth().getEmail());
+        instructorProfileResponseDto.setPhoneNo(userDetails.getPhoneNo());
+        instructorProfileResponseDto.setDob(userDetails.getDob());
+        instructorProfileResponseDto.setGender(userDetails.getGender());
+        instructorProfileResponseDto.setEducations(userDetails.getEducations());
+        instructorProfileResponseDto.setProfilePic(userDetails.getProfilePic());
+        instructorProfileResponseDto.setSpecializations(instructor.getSpecializations());
+        instructorProfileResponseDto.setBio(instructor.getBio());
+        instructorProfileResponseDto.setExperience(instructor.getExperience());
+        instructorProfileResponseDto.setGitHubUrl(instructor.getGitHubUrl());
+        instructorProfileResponseDto.setLinkedInUrl(instructor.getLinkedInUrl());
+        instructorProfileResponseDto.setTwitterUrl(instructor.getTwitterUrl());
+
+        return instructorProfileResponseDto;
+
+    }
+
+    @Override
+    public List<Specialization> getAllSpecialization() {
+        return specializationRepository.findAll();
+    }
+
+    @Override
+    public ApiResponse updateSpecialization(UUID authId, SpecializationRequestDto specializationRequestDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        Instructor  instructor = instructorRepository.findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
+
+        instructor.getSpecializations().clear();
+        instructor.setSpecializations(specializationRequestDto.getSpecializations());
+
+        instructorRepository.save(instructor);
+
+        return new ApiResponse(true, "Specialization details Updated");
+    }
+
+    @Override
+    public ApiResponse updateInstructorProfile(UUID authId, InstructorProfileRequestDto instructorProfileRequestDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        Instructor  instructor = instructorRepository.findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
+        if (userAuthRepository.existsByEmail(instructorProfileRequestDto.getEmail())) {
+            if(!userDetails.getUserAuth().getEmail().equals(instructorProfileRequestDto.getEmail())){
+                throw new EmailAlreadyExistsException("Email already registered");
+            }
+        }
+        userDetails.setFirstName(instructorProfileRequestDto.getFirstName());
+        userDetails.setLastName(instructorProfileRequestDto.getLastName());
+        userDetails.setAddress(instructorProfileRequestDto.getAddress());
+        userDetails.getUserAuth().setEmail(instructorProfileRequestDto.getEmail());
+        userDetails.setPhoneNo(instructorProfileRequestDto.getPhoneNo());
+        userDetails.setDob(instructorProfileRequestDto.getDob());
+        userDetails.setGender(instructorProfileRequestDto.getGender());
+        instructor.setBio(instructorProfileRequestDto.getBio());
+        instructor.setExperience(instructorProfileRequestDto.getExperience());
+        instructor.setGitHubUrl(instructorProfileRequestDto.getGitHubUrl());
+        instructor.setLinkedInUrl(instructorProfileRequestDto.getLinkedInUrl());
+        instructor.setTwitterUrl(instructorProfileRequestDto.getTwitterUrl());
+
+        instructorRepository.save(instructor);
+        userDetailRepository.save(userDetails);
+
+        return new ApiResponse(true, "Profile details Updated");
     }
 
 }

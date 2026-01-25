@@ -2,7 +2,7 @@ package com.learnease.server.model.enums;
 
 public enum BookingStatus {
 	PENDING,
-	FAILED,
+	REJECTED,
 	PAID,
 	EXPIRED
 }

@@ -1,11 +1,9 @@
 package com.learnease.server.service;
 
 import com.learnease.server.dto.ApiResponse;
-import com.learnease.server.dto.Profile.EducationRequestDto;
-import com.learnease.server.dto.Profile.SkillRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.dto.Profile.*;
 import com.learnease.server.model.Skill;
+import com.learnease.server.model.Specialization;
 import jakarta.validation.Valid;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +23,15 @@ public interface ProfileService {
 
     ApiResponse updateSkill(UUID authId, SkillRequestDto skillRequestDto);
 
-    ApiResponse updateProfile(UUID authId, @Valid StudentProfileRequestDto studentProfileRequestDto);
+    ApiResponse updateStudentProfile(UUID authId, @Valid StudentProfileRequestDto studentProfileRequestDto);
 
     ApiResponse updateProfilePic(UUID authId, MultipartFile profilePic);
+
+    InstructorProfileResponseDto getInstructorDetails(UUID authId);
+
+    List<Specialization> getAllSpecialization();
+
+    ApiResponse updateSpecialization(UUID authId, SpecializationRequestDto specializationRequestDto);
+
+    ApiResponse updateInstructorProfile(UUID authId, @Valid InstructorProfileRequestDto instructorProfileRequestDto);
 }
