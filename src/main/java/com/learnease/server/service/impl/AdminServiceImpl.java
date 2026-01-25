@@ -1,5 +1,6 @@
 package com.learnease.server.service.impl;
 
+import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.model.Admin;
@@ -10,10 +11,12 @@ import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.repository.AdminRepository;
 import com.learnease.server.repository.InstructorRepository;
+import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.AdminService;
 import com.learnease.server.util.mappers.AddressMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
@@ -31,6 +35,7 @@ public class AdminServiceImpl implements AdminService {
     private final AddressMapper addressMapper;
     private final InstructorRepository instructorRepository;
     private final S3Service s3Service;
+    private final UserAuthRepository userAuthRepository;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -47,7 +52,7 @@ public class AdminServiceImpl implements AdminService {
                     .setDob(newUser.dob())
                     .setGender(newUser.gender())
                     .setPhoneNo(newUser.phoneNo())
-                    .setProfilePic(s3Service.uploadFile(profilePic,"profile_pictures"))
+                    .setProfilePic(s3Service.uploadFile(profilePic, "profile_pictures"))
                     .setAddress(addressMapper.toEntity(newUser.address()));
 
 
@@ -63,45 +68,56 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<Instructor> getInstructorByStatus(Status status) {
-        if(status ==null){
-            return instructorRepository.findAll();
-        } else{
-            return instructorRepository.findInstructorByUserDetailsUserAuthStatus(status);
+    public List<InstructorResponseDto> getInstructorByStatus(Status status) {
+        if (status == null) {
+            return instructorRepository.findAll()
+                    .stream().map(InstructorResponseDto::fromEntity).toList();
+        } else {
+            return instructorRepository.findInstructorByUserDetailsUserAuthStatus(status)
+                    .stream().map(InstructorResponseDto::fromEntity).toList();
+        }
+    }
+
+    @Override
+    public long getInstructorCountByStatus(Status status) {
+        if (status == null) {
+            return instructorRepository.countAllByUserDetailsUserAuthStatus(Status.ACTIVE);
+        } else {
+            return instructorRepository.countAllByUserDetailsUserAuthStatus(status);
         }
     }
 
     @Transactional
     @Override
     public Instructor approveInstructor(UUID adminId, UUID instructorID) {
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(()-> new BadClientRequestException("Admin with id " + adminId + " not found"));
+        Admin admin = adminRepository.findByUserDetailsUserAuthId(adminId)
+                .orElseThrow(() -> new BadClientRequestException("Admin with id " + adminId + " not found"));
         Instructor instructor = instructorRepository.findById(instructorID)
-                .orElseThrow(() -> new BadClientRequestException("Instructor with id "+ instructorID + " not found"));
-        if(instructor.getUserDetails().getUserAuth().getStatus()!=Status.PENDING &&
-                instructor.getUserDetails().getUserAuth().getStatus()!=Status.REJECTED
-        ){
+                .orElseThrow(() -> new BadClientRequestException("Instructor with id " + instructorID + " not found"));
+        if (instructor.getUserDetails().getUserAuth().getStatus() != Status.PENDING &&
+                instructor.getUserDetails().getUserAuth().getStatus() != Status.REJECTED
+        ) {
             throw new BadClientRequestException("Instructor already Processed");
         }
         instructor.getUserDetails().getUserAuth().setStatus(Status.ACTIVE);
         instructor.setProcessedBy(admin);
         instructor.setProcessedAt(LocalDateTime.now());
-        return instructorRepository.save(instructor);
+        return instructor;
     }
 
     @Transactional
     @Override
     public Instructor rejectInstructor(UUID adminId, UUID instructorID) {
-        Admin admin = adminRepository.findById(adminId)
-                .orElseThrow(()-> new BadClientRequestException("Admin with id " + adminId + " not found"));
+        Admin admin = adminRepository.findByUserDetailsUserAuthId(adminId)
+                .orElseThrow(() -> new BadClientRequestException("Admin with id " + adminId + " not found"));
         Instructor instructor = instructorRepository.findById(instructorID)
-                .orElseThrow(() -> new BadClientRequestException("Instructor with id "+ instructorID + " not found"));
-        if(instructor.getUserDetails().getUserAuth().getStatus()!=Status.PENDING){
+                .orElseThrow(() -> new BadClientRequestException("Instructor with id " + instructorID + " not found"));
+        if (instructor.getUserDetails().getUserAuth().getStatus() != Status.PENDING) {
             throw new BadClientRequestException("Instructor already Processed");
         }
         instructor.getUserDetails().getUserAuth().setStatus(Status.REJECTED);
         instructor.setProcessedBy(admin);
         instructor.setProcessedAt(LocalDateTime.now());
-        return instructorRepository.save(instructor);
+        return instructor;
     }
 }
