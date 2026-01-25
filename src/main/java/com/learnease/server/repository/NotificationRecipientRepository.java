@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface NotificationRecipientRepository extends JpaRepository<NotificationRecipient, UUID> {
     public Page<NotificationRecipient> findByRecipientAndDeletedFalse(UserAuth user, Pageable pageable);
     public Page<NotificationRecipient> findByRecipientAndDeletedFalseAndIsRead(UserAuth user, boolean isRead, Pageable pageable);
+    public long countAllByRecipient(UserAuth userAuth);
+    public long countAllByRecipientAndIsRead(UserAuth userAuth, boolean isRead);
 }

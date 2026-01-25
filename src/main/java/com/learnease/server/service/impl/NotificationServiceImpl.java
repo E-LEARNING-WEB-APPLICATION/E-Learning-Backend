@@ -5,6 +5,7 @@ import com.learnease.server.dto.notification.NotificationResponseDTO;
 import com.learnease.server.dto.notification.SendNotificationDTO;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
+import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Notification;
 import com.learnease.server.model.NotificationRecipient;
 import com.learnease.server.model.UserAuth;
@@ -132,6 +133,17 @@ public class NotificationServiceImpl implements NotificationService {
         return notificationRecipientRepository
                 .findByRecipientAndDeletedFalseAndIsRead(user, false, pageable)
                 .map(nr -> NotificationResponseDTO.from(nr));
+    }
+
+    @Override
+    public long getNotificationCount(UUID userAuthId, Boolean includeRead) {
+        UserAuth user = userAuthRepository.findById(userAuthId)
+                .orElseThrow(() -> new UserNotFoundException("user not found with given Id"));
+        if (includeRead != null && !includeRead) {
+            return notificationRecipientRepository.countAllByRecipientAndIsRead(user, false);
+        } else {
+            return notificationRecipientRepository.countAllByRecipient(user);
+        }
     }
 
 }
