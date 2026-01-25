@@ -2,6 +2,7 @@ package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.booking.CreateBookingRequestDto;
 import com.learnease.server.dto.booking.CreateBookingResponseDto;
+import com.learnease.server.dto.booking.VerifyPaymentRequestDto;
 import com.learnease.server.exception.custom_exception.BookingException;
 import com.learnease.server.model.*;
 import com.learnease.server.model.enums.BookingErrorCode;
@@ -16,10 +17,15 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +42,10 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final RazorpayClient razorpayClient;
     private final BookingMapper bookingMapper;
+
+    @Value("${razorpay.key-secret}")
+    private String razorpaySecret;
+
 
     @Override
     public CreateBookingResponseDto createBooking(
@@ -188,4 +198,118 @@ public class BookingServiceImpl implements BookingService {
 
         return bookingMapper.toCreateBookingResponse(booking);
     }
+
+    @Override
+    @Transactional
+    public void verifyPayment(
+            UUID bookingId,
+            VerifyPaymentRequestDto request
+    ) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingException(
+                        BookingErrorCode.BOOKING_NOT_FOUND,
+                        "Booking not found"
+                ));
+
+    /* ---------------------------------
+        Idempotency guard
+       --------------------------------- */
+        if (booking.getStatus() == BookingStatus.PAID) {
+            return; // already verified, safe no-op
+        }
+
+        if (booking.getStatus() == BookingStatus.REJECTED) {
+            throw new BookingException(
+                    BookingErrorCode.PAYMENT_REJECTED,
+                    "Payment already rejected for this booking"
+            );
+        }
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingException(
+                    BookingErrorCode.INVALID_BOOKING_STATE,
+                    "Booking is not in a payable state"
+            );
+        }
+
+
+         // Order ID validation
+        if (!booking.getRazorpayOrderId()
+                .equals(request.getRazorpayOrderId())) {
+
+            booking.setStatus(BookingStatus.REJECTED);
+            bookingRepository.save(booking);
+
+            throw new BookingException(
+                    BookingErrorCode.ORDER_ID_MISMATCH,
+                    "Razorpay order ID mismatch"
+            );
+        }
+
+        // Signature verification
+
+        boolean isValidSignature = verifyRazorpaySignature(
+                request.getRazorpayOrderId(),
+                request.getRazorpayPaymentId(),
+                request.getRazorpaySignature()
+        );
+
+        if (!isValidSignature) {
+
+            booking.setStatus(BookingStatus.REJECTED);
+            bookingRepository.save(booking);
+
+            throw new BookingException(
+                    BookingErrorCode.INVALID_PAYMENT_SIGNATURE,
+                    "Invalid Razorpay payment signature"
+            );
+        }
+
+        // SUCCESS — finalize payment
+
+        booking.setRazorpayPaymentId(request.getRazorpayPaymentId());
+        booking.setStatus(BookingStatus.PAID);
+        booking.setPaidAt(LocalDateTime.now());
+
+        Student student = booking.getStudent();
+        Course course = booking.getPurchasedCourse();
+
+        if (!student.getCourses().contains(course)) {
+            student.getCourses().add(course);
+            student.setTotalEnrolledCourses(
+                    student.getTotalEnrolledCourses() + 1
+            );
+        }
+
+        bookingRepository.save(booking);
+        // student is managed — dirty checking will persist enrollment
+    }
+
+
+    private boolean verifyRazorpaySignature(
+            String orderId,
+            String paymentId,
+            String razorpaySignature
+    ) {
+        try {
+            String payload = orderId + "|" + paymentId;
+
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKey = new SecretKeySpec(
+                    razorpaySecret.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+            mac.init(secretKey);
+
+            byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+            String generatedSignature = Hex.encodeHexString(hash);
+
+            return generatedSignature.equals(razorpaySignature);
+
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
 }
