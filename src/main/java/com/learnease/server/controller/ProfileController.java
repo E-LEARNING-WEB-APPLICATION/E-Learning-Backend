@@ -2,11 +2,9 @@ package com.learnease.server.controller;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.Profile.EducationRequestDto;
-import com.learnease.server.dto.Profile.SkillRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileRequestDto;
-import com.learnease.server.dto.Profile.StudentProfileResponseDto;
+import com.learnease.server.dto.Profile.*;
 import com.learnease.server.model.Skill;
+import com.learnease.server.model.Specialization;
 import com.learnease.server.service.ProfileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -101,13 +99,13 @@ public class ProfileController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Update the profile info")
-    @PutMapping("/updateProfile")
-    public ResponseEntity<?> updateProfileInfo(@RequestBody @Valid StudentProfileRequestDto studentProfileRequestDto,Authentication authentication){
+    @Operation(summary = "Update the Student profile info")
+    @PutMapping("/updateStudentProfile")
+    public ResponseEntity<?> updateStudentProfileInfo(@RequestBody @Valid StudentProfileRequestDto studentProfileRequestDto,Authentication authentication){
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
         UUID authId = jwt.getUserId();
 
-        ApiResponse response = profileService.updateProfile(authId,studentProfileRequestDto);
+        ApiResponse response = profileService.updateStudentProfile(authId,studentProfileRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
@@ -119,6 +117,47 @@ public class ProfileController {
         UUID authId = jwt.getUserId();
 
         ApiResponse response = profileService.updateProfilePic(authId,profilePic);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Get the Profile details for Instructor")
+    @GetMapping("/instructor")
+    public ResponseEntity<?> getInstructorDetails(Authentication authentication){
+        //to get the user id from the jwt token
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+        InstructorProfileResponseDto instructorProfileResponseDto = profileService.getInstructorDetails(authId);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(instructorProfileResponseDto);
+    }
+
+    @SecurityRequirement(name="bearerAuth")
+    @Operation(summary = "Get All the Specialization for selection")
+    @GetMapping("/getAllSpecialization")
+    public ResponseEntity<?> getAllSpecialization(){
+        List<Specialization> specializationSet = profileService.getAllSpecialization();
+        return ResponseEntity.status(HttpStatus.FOUND).body(specializationSet);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the Specialization from the profile")
+    @PutMapping("/updateSpecialization")
+    public ResponseEntity<?> updateUserSpecialization(@RequestBody SpecializationRequestDto specializationRequestDto, Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateSpecialization(authId,specializationRequestDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the Instructor profile info")
+    @PutMapping("/updateInstructorProfile")
+    public ResponseEntity<?> updateInstructorProfileInfo(@RequestBody @Valid InstructorProfileRequestDto instructorProfileRequestDto,Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateInstructorProfile(authId,instructorProfileRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }
