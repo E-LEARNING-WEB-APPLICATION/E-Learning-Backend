@@ -1,8 +1,8 @@
-package com.learnease.server.dto.Profile;
+package com.learnease.server.dto.profile;
 
 import com.learnease.server.model.Address;
 import com.learnease.server.model.Education;
-import com.learnease.server.model.Specialization;
+import com.learnease.server.model.Skill;
 import com.learnease.server.model.enums.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,14 +10,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-public class InstructorProfileResponseDto {
-
+public class StudentProfileResponseDto {
     private String email;
 
     private String firstName;
@@ -36,16 +38,5 @@ public class InstructorProfileResponseDto {
 
     private Address address;
 
-    private String bio;
-
-    private String experience;
-
-    private String gitHubUrl;
-
-    private String linkedInUrl;
-
-    private String twitterUrl;
-
-    private Set<Specialization> specializations = new HashSet<>();
+    private Set<Skill> skills = new HashSet<>();
 }
-

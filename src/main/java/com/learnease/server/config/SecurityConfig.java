@@ -51,6 +51,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/user/auth/**",
+                                "/api/v1/category/",
                                 "/api/v1/notifications/stream"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()

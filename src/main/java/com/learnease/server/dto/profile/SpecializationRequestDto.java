@@ -1,4 +1,4 @@
-package com.learnease.server.dto.Profile;
+package com.learnease.server.dto.profile;
 
 import com.learnease.server.model.Specialization;
 import lombok.AllArgsConstructor;

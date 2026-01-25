@@ -34,6 +34,12 @@ public class Course extends BaseEntity{
     private String introVideo;
     @NotNull
     private int hour;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "category_id",
+            nullable = false
+    )
+    private Category category;
     // This will create course_id as a foreign key in the section table
     @OneToMany
     @JoinColumn(name = "course_id")
