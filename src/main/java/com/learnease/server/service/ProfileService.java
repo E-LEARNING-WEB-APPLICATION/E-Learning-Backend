@@ -23,7 +23,7 @@ public interface ProfileService {
 
     ApiResponse updateSkill(UUID authId, SkillRequestDto skillRequestDto);
 
-    ApiResponse updateProfile(UUID authId, @Valid StudentProfileRequestDto studentProfileRequestDto);
+    ApiResponse updateStudentProfile(UUID authId, @Valid StudentProfileRequestDto studentProfileRequestDto);
 
     ApiResponse updateProfilePic(UUID authId, MultipartFile profilePic);
 
@@ -32,4 +32,6 @@ public interface ProfileService {
     List<Specialization> getAllSpecialization();
 
     ApiResponse updateSpecialization(UUID authId, SpecializationRequestDto specializationRequestDto);
+
+    ApiResponse updateInstructorProfile(UUID authId, @Valid InstructorProfileRequestDto instructorProfileRequestDto);
 }

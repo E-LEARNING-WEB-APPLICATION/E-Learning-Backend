@@ -46,7 +46,7 @@ public class ProfileController {
 
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Post Education details")
-    @PostMapping("/addEducaion")
+    @PostMapping("/addEducation")
     public ResponseEntity<?> addEducationDetails(@RequestBody @Valid EducationRequestDto educationRequestDto , Authentication authentication){
 
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
@@ -99,13 +99,13 @@ public class ProfileController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @Operation(summary = "Update the profile info")
-    @PutMapping("/updateProfile")
-    public ResponseEntity<?> updateProfileInfo(@RequestBody @Valid StudentProfileRequestDto studentProfileRequestDto,Authentication authentication){
+    @Operation(summary = "Update the Student profile info")
+    @PutMapping("/updateStudentProfile")
+    public ResponseEntity<?> updateStudentProfileInfo(@RequestBody @Valid StudentProfileRequestDto studentProfileRequestDto,Authentication authentication){
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
         UUID authId = jwt.getUserId();
 
-        ApiResponse response = profileService.updateProfile(authId,studentProfileRequestDto);
+        ApiResponse response = profileService.updateStudentProfile(authId,studentProfileRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
@@ -147,6 +147,17 @@ public class ProfileController {
         UUID authId = jwt.getUserId();
 
         ApiResponse response = profileService.updateSpecialization(authId,specializationRequestDto);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Update the Instructor profile info")
+    @PutMapping("/updateInstructorProfile")
+    public ResponseEntity<?> updateInstructorProfileInfo(@RequestBody @Valid InstructorProfileRequestDto instructorProfileRequestDto,Authentication authentication){
+        JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwt.getUserId();
+
+        ApiResponse response = profileService.updateInstructorProfile(authId,instructorProfileRequestDto);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 }

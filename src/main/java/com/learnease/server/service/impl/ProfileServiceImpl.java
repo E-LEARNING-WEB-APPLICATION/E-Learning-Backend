@@ -147,7 +147,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ApiResponse updateProfile(UUID authId, StudentProfileRequestDto studentProfileRequestDto) {
+    public ApiResponse updateStudentProfile(UUID authId, StudentProfileRequestDto studentProfileRequestDto) {
         UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
                 .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
         if (userAuthRepository.existsByEmail(studentProfileRequestDto.getEmail())) {
@@ -232,6 +232,36 @@ public class ProfileServiceImpl implements ProfileService {
         instructorRepository.save(instructor);
 
         return new ApiResponse(true, "Specialization details Updated");
+    }
+
+    @Override
+    public ApiResponse updateInstructorProfile(UUID authId, InstructorProfileRequestDto instructorProfileRequestDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(authId)
+                .orElseThrow(() -> new UserNotFoundException("No Such User Exist"));
+        Instructor  instructor = instructorRepository.findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
+        if (userAuthRepository.existsByEmail(instructorProfileRequestDto.getEmail())) {
+            if(!userDetails.getUserAuth().getEmail().equals(instructorProfileRequestDto.getEmail())){
+                throw new EmailAlreadyExistsException("Email already registered");
+            }
+        }
+        userDetails.setFirstName(instructorProfileRequestDto.getFirstName());
+        userDetails.setLastName(instructorProfileRequestDto.getLastName());
+        userDetails.setAddress(instructorProfileRequestDto.getAddress());
+        userDetails.getUserAuth().setEmail(instructorProfileRequestDto.getEmail());
+        userDetails.setPhoneNo(instructorProfileRequestDto.getPhoneNo());
+        userDetails.setDob(instructorProfileRequestDto.getDob());
+        userDetails.setGender(instructorProfileRequestDto.getGender());
+        instructor.setBio(instructorProfileRequestDto.getBio());
+        instructor.setExperience(instructorProfileRequestDto.getExperience());
+        instructor.setGitHubUrl(instructorProfileRequestDto.getGitHubUrl());
+        instructor.setLinkedInUrl(instructorProfileRequestDto.getLinkedInUrl());
+        instructor.setTwitterUrl(instructorProfileRequestDto.getTwitterUrl());
+
+        instructorRepository.save(instructor);
+        userDetailRepository.save(userDetails);
+
+        return new ApiResponse(true, "Profile details Updated");
     }
 
 }
