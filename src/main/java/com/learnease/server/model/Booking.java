@@ -65,4 +65,6 @@ public class Booking extends BaseEntity {
 	private BookingStatus status;
 
 	private LocalDateTime expiresAt;
+
+	private LocalDateTime paidAt;
 }

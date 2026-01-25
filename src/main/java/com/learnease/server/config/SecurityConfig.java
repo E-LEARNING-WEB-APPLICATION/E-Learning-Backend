@@ -53,7 +53,7 @@ public class SecurityConfig {
                                 "/user/auth/**",
                                 "/api/v1/notifications/stream"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()
                         .anyRequest().authenticated()
                 )
 
