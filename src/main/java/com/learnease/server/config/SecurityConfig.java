@@ -52,7 +52,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/user/auth/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()
                         .anyRequest().authenticated()
                 )
 

@@ -98,12 +98,19 @@ public class GlobalExceptionHandler {
         };
     }
 
-
+    
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ApiResponse(false, ex.getMessage())); // for developement later change to generic message
+    }
+
+    @ExceptionHandler(CourseNotFoundException.class)
+    public ResponseEntity<?> handleCourseNotFoundException(CourseNotFoundException ex){
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(false, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
