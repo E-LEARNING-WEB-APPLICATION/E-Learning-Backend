@@ -44,44 +44,4 @@ public class AdminController {
                     .body(new ApiResponse(true, "new admin registered successfully!"));
     }
 
-    @Operation(summary =  "get all instructor count by status, add status param PENDING to get pending instructors count")
-    @GetMapping("/instructors/count")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getInstructorsCountByStatus(
-            @RequestParam(name = "status", required = false) Status status
-    ) {
-        long instructorCount = adminService.getInstructorCountByStatus(status);
-        return ResponseEntity.ok(new ApiResponse<>(true, instructorCount));
-    }
-
-    @Operation(summary =  "get all instructors by status, add status param PENDING to get pending instructors")
-    @GetMapping("/instructors")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getInstructorsByStatus(
-            @RequestParam(name = "status", required = false) Status status
-    ) {
-        List<InstructorResponseDto> instructors = adminService.getInstructorByStatus(status);
-        return ResponseEntity.ok(instructors);
-    }
-
-    @PutMapping("/instructors/{id}/approve")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> approveInstructor(
-            @AuthenticationPrincipal JWTDTO admin,
-            @PathVariable UUID id) {
-
-        adminService.approveInstructor(admin.getUserId(), id);
-        return ResponseEntity.ok(new ApiResponse(true, "Instructor approved"));
-    }
-
-    @PutMapping("/instructors/{id}/reject")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> rejectInstructor(
-            @AuthenticationPrincipal JWTDTO admin,
-            @PathVariable UUID id) {
-
-        adminService.rejectInstructor(admin.getUserId(), id);
-        return ResponseEntity.ok(new ApiResponse(true, "Instructor approved"));
-    }
-
 }

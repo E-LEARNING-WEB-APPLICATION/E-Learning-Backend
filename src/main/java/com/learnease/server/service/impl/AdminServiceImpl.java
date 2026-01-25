@@ -9,9 +9,7 @@ import com.learnease.server.model.UserAuth;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
-import com.learnease.server.repository.AdminRepository;
-import com.learnease.server.repository.InstructorRepository;
-import com.learnease.server.repository.UserAuthRepository;
+import com.learnease.server.repository.*;
 import com.learnease.server.service.AdminService;
 import com.learnease.server.util.mappers.AddressMapper;
 import jakarta.transaction.Transactional;
@@ -35,7 +33,8 @@ public class AdminServiceImpl implements AdminService {
     private final AddressMapper addressMapper;
     private final InstructorRepository instructorRepository;
     private final S3Service s3Service;
-    private final UserAuthRepository userAuthRepository;
+    private final CourseRepository courseRepository;
+    private final StudentRepository studentRepository;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -119,5 +118,15 @@ public class AdminServiceImpl implements AdminService {
         instructor.setProcessedBy(admin);
         instructor.setProcessedAt(LocalDateTime.now());
         return instructor;
+    }
+
+    @Override
+    public long getAllCourseCount() {
+        return courseRepository.count();
+    }
+
+    @Override
+    public long getActiveStudentCountByDate(LocalDateTime afterDate) {
+        return studentRepository.countAllByUserDetails_UserAuth_LastLoginAtAfter(afterDate);
     }
 }

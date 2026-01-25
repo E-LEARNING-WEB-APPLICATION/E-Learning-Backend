@@ -10,6 +10,7 @@ import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,4 +20,6 @@ public interface AdminService {
     public long getInstructorCountByStatus(Status status);
     public Instructor approveInstructor(UUID adminId, UUID instructorID);
     public Instructor rejectInstructor(UUID adminId, UUID instructorID);
+    public long getAllCourseCount();
+    public long getActiveStudentCountByDate(LocalDateTime afterDate);
 }

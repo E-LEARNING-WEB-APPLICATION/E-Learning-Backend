@@ -40,9 +40,6 @@ public class Student extends BaseEntity{
     @Column(columnDefinition = "int default 0")
     private int totalEnrolledCourses;
 
-    @PastOrPresent(message = "Last login time cannot be in the future")
-    private LocalDateTime lastLoginAt;
-
     @Valid
     @ManyToMany
     @JoinTable(name = "student_skills",
