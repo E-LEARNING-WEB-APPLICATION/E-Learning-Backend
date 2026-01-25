@@ -14,4 +14,5 @@ public interface NotificationService {
     public void updateNotificationRead(UUID userId , UUID notificationId);
     public Page<NotificationResponseDTO> getUserNotifications(UUID userAuthId, Pageable pageable);
     public Page<NotificationResponseDTO> getUserUnreadNotification(UUID userAuthId, Pageable pageable);
+    public long getNotificationCount(UUID userAuthId, Boolean includeRead);
 }

@@ -98,7 +98,7 @@ public class GlobalExceptionHandler {
         };
     }
 
-    
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<?> handleUserNotFoundException(UserNotFoundException ex){
         return ResponseEntity
