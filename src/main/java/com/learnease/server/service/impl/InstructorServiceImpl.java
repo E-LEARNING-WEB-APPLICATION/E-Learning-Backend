@@ -1,6 +1,7 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
@@ -14,6 +15,7 @@ import com.learnease.server.repository.CourseRepository;
 import com.learnease.server.repository.InstructorRepository;
 import com.learnease.server.repository.UserDetailRepository;
 import com.learnease.server.service.InstructorService;
+import com.learnease.server.util.mappers.InstructorMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final UserDetailRepository userDetailRepository;
     private final CategoryRepository categoryRepository;
     private final S3Service s3Service;
+    private final InstructorMapper instructorMapper;
 
     @Override
     public ApiResponse addCourse(String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user) {
@@ -86,5 +89,15 @@ public class InstructorServiceImpl implements InstructorService {
         List<CoursesDto> courses = courseRepository.findByInstructor(instructor.getId());
 
         return courses;
+    }
+
+    @Override
+    public CourseInstructorResponseDto getInstructorById(UUID instructorId) {
+
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(()-> new UserNotFoundException("Instructor Not Found"));
+
+
+        return instructorMapper.toResponse(instructor);
     }
 }
