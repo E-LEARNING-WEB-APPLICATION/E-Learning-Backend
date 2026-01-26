@@ -66,6 +66,11 @@ public class CategoryServiceImpl implements CategoryService {
                 .toList();
     }
 
+    @Override
+    public long getAllCategoryCount() {
+        return categoryRepository.count();
+    }
+
 
     @Override
     public Category updateCategory(UUID id, CategoryUpdateRequestDto req) {

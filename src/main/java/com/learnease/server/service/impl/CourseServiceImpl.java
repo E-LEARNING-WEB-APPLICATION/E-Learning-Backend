@@ -118,4 +118,9 @@ public class CourseServiceImpl implements CourseService {
                 .map(enrollmentMapper::toDto)
                 .toList();
     }
+
+    @Override
+    public long getCourseCount() {
+        return courseRepository.count();
+    }
 }

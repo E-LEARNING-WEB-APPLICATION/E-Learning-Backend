@@ -19,4 +19,5 @@ public interface CourseService {
     ApiResponse getCoursePaymentStatus(UUID courseId, UUID authId);
 
     public List<EnrolledCourseResponseDto> getMyEnrolledCourses(UUID authId);
+    long getCourseCount();
 }

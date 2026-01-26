@@ -3,8 +3,11 @@ package com.learnease.server.controller.adminPanel;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.admin.InstructorLeaderboardDTO;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.service.AdminService;
+import com.learnease.server.service.InstructorStatisticsService;
+import com.learnease.server.util.enums.InstructorSortBy;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminInstructorController {
     private final AdminService adminService;
+    private final InstructorStatisticsService instructorStatisticsService;
 
     @Operation(summary =  "get all instructors by status, add status param PENDING to get pending instructors")
     @GetMapping
@@ -60,4 +64,13 @@ public class AdminInstructorController {
         adminService.rejectInstructor(admin.getUserId(), id);
         return ResponseEntity.ok(new ApiResponse(true, "Instructor approved"));
     }
+
+    @GetMapping("/leaderboard")
+    public List<InstructorLeaderboardDTO> leaderboard(
+            @RequestParam InstructorSortBy sortBy,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return instructorStatisticsService.getTopInstructors(sortBy, limit);
+    }
+
 }
