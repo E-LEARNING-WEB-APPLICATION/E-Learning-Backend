@@ -118,4 +118,11 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
         """)
     List<CourseEnrollmentDTO> findTopCoursesByEnrollments(@Param("top") int top);
 
+    List<Booking> findByStudentAndStatusOrderByPaidAtDesc(
+            Student student,
+            BookingStatus status
+    );
+
+
+
 }

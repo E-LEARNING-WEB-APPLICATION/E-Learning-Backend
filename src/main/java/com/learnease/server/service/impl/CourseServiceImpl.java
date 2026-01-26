@@ -3,17 +3,18 @@ package com.learnease.server.service.impl;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.course.CourseResponseDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
+import com.learnease.server.dto.course.EnrolledCourseResponseDto;
 import com.learnease.server.exception.custom_exception.CourseNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
+import com.learnease.server.model.Booking;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.UserDetails;
-import com.learnease.server.repository.CourseRepository;
-import com.learnease.server.repository.FeedbackRepository;
-import com.learnease.server.repository.StudentRepository;
-import com.learnease.server.repository.UserDetailRepository;
+import com.learnease.server.model.enums.BookingStatus;
+import com.learnease.server.repository.*;
 import com.learnease.server.service.CourseService;
 import com.learnease.server.util.mappers.CourseMapper;
+import com.learnease.server.util.mappers.EnrollmentMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,8 @@ public class CourseServiceImpl implements CourseService {
     private final CourseRepository courseRepository;
     private final FeedbackRepository feedbackRepository;
     private final CourseMapper courseMapper;
+    private final BookingRepository bookingRepository;
+    private final EnrollmentMapper enrollmentMapper;
 
     @Override
     public CourseResponseDto getCourseById(UUID courseId) {
@@ -91,10 +94,28 @@ public class CourseServiceImpl implements CourseService {
                 .orElseThrow(() -> new UserNotFoundException("No Such Student Exist"));
 
         for (Course course : student.getCourses()){
-            if (course.getId() == courseId){
+            if (course.getId().equals(courseId)){
                 return new ApiResponse(true,"Course is assessable");
             }
         }
         return new ApiResponse(false,"course is not assessable");
+    }
+
+    @Override
+    public List<EnrolledCourseResponseDto> getMyEnrolledCourses(UUID authId) {
+
+        Student student = studentRepository.findByUserDetails_UserAuth_Id(authId)
+                .orElseThrow(()-> new UserNotFoundException("Student not found for authId: " + authId));
+
+        List<Booking> bookings =
+                bookingRepository.findByStudentAndStatusOrderByPaidAtDesc(
+                        student,
+                        BookingStatus.PAID
+                );
+
+        return bookings
+                .stream()
+                .map(enrollmentMapper::toDto)
+                .toList();
     }
 }
