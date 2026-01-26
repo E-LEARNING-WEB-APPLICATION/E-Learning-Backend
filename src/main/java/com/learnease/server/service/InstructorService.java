@@ -1,9 +1,9 @@
 package com.learnease.server.service;
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -18,5 +18,5 @@ public interface InstructorService {
 
     List<CoursesDto> getAllCourses(JWTDTO user);
 
-    List<DashboardInstructorResponseDto> getAllInstructors();
+    public CourseInstructorResponseDto getInstructorById(UUID instructorId);
 }

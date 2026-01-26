@@ -2,6 +2,7 @@ package com.learnease.server.controller;
 
 
 import com.learnease.server.dto.ApiResponse;
+import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
@@ -66,6 +67,19 @@ public class InstructorController {
     {
         List<CoursesDto> courses = instructorService.getAllCourses(user);
         return ResponseEntity.ok(courses);
+    }
+
+    @Operation(
+            summary = "Get instructor profile",
+            description = "Fetch logged-in instructor profile details"
+    )
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getInstructorById(
+            @PathVariable UUID id
+    ) {
+        CourseInstructorResponseDto response = instructorService.getInstructorById(id);
+        return ResponseEntity.status(HttpStatus.ACCEPTED)
+                .body(new ApiResponse<CourseInstructorResponseDto>(true , response));
     }
 
     @Operation(
