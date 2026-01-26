@@ -2,6 +2,7 @@ package com.learnease.server.dto;
 
 import com.learnease.server.dto.auth.AddressDto;
 import com.learnease.server.model.*;
+import com.learnease.server.model.enums.Status;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -24,6 +25,7 @@ public class InstructorResponseDto {
     private String bio;
     private String phoneNo;
     private String email;
+    private Status status;
 
     private String profilePic;
 
@@ -57,6 +59,7 @@ public class InstructorResponseDto {
                 .phoneNo(instructor.getUserDetails().getPhoneNo())
                 .email(instructor.getUserDetails().getUserAuth().getEmail())
                 .profilePic(user.getProfilePic())
+                .status(user.getUserAuth().getStatus())
 
                 .gitHubUrl(instructor.getGitHubUrl())
                 .linkedInUrl(instructor.getLinkedInUrl())
