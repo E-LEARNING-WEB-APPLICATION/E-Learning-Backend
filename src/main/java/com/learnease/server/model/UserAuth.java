@@ -6,12 +6,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 import lombok.experimental.Accessors;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -41,6 +43,16 @@ public class UserAuth extends BaseEntity implements UserDetails {
     @Enumerated(EnumType.STRING)
     @NotNull
     private Status status;
+
+    @PastOrPresent(message = "Last login time cannot be in the future")
+    private LocalDateTime lastLoginAt;
+
+    public UserAuth(String email, String password, Role role, Status status) {
+        this.email = email;
+        this.password = password;
+        this.role = role;
+        this.status = status;
+    }
 
     @Override
     public String toString() {
