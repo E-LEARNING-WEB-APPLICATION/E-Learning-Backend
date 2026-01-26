@@ -264,4 +264,30 @@ public class ProfileServiceImpl implements ProfileService {
         return new ApiResponse(true, "Profile details Updated");
     }
 
+    @Override
+    public InstructorProfileResponseDto getInstructorDetailsById(UUID instructorId) {
+        Instructor instructor = instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new UserNotFoundException("No Such Instructor Exist"));
+        InstructorProfileResponseDto instructorProfileResponseDto = new InstructorProfileResponseDto();
+
+        instructorProfileResponseDto.setFirstName(instructor.getUserDetails().getFirstName());
+        instructorProfileResponseDto.setLastName(instructor.getUserDetails().getLastName());
+        instructorProfileResponseDto.setAddress(instructor.getUserDetails().getAddress());
+        instructorProfileResponseDto.setEmail(instructor.getUserDetails().getUserAuth().getEmail());
+        instructorProfileResponseDto.setPhoneNo(instructor.getUserDetails().getPhoneNo());
+        instructorProfileResponseDto.setDob(instructor.getUserDetails().getDob());
+        instructorProfileResponseDto.setGender(instructor.getUserDetails().getGender());
+        instructorProfileResponseDto.setEducations(instructor.getUserDetails().getEducations());
+        instructorProfileResponseDto.setProfilePic(instructor.getUserDetails().getProfilePic());
+        instructorProfileResponseDto.setSpecializations(instructor.getSpecializations());
+        instructorProfileResponseDto.setBio(instructor.getBio());
+        instructorProfileResponseDto.setExperience(instructor.getExperience());
+        instructorProfileResponseDto.setGitHubUrl(instructor.getGitHubUrl());
+        instructorProfileResponseDto.setLinkedInUrl(instructor.getLinkedInUrl());
+        instructorProfileResponseDto.setTwitterUrl(instructor.getTwitterUrl());
+
+        return instructorProfileResponseDto;
+
+    }
+
 }
