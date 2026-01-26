@@ -3,6 +3,7 @@ package com.learnease.server.repository;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
+import com.learnease.server.projection.course.DashboardCoursesProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,4 +40,61 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             WHERE c.id = :courseId
     """)
     Optional<Course> findCourseGraphById(@Param("courseId") UUID courseId);
+
+    // Fetch dashboard-ready course data with average rating and total reviews using a native SQL query
+    @Query(value = """
+    SELECT 
+        BIN_TO_UUID(c.course_id) AS id,
+        BIN_TO_UUID(c.category_id) AS categoryId,
+        c.thumbnail AS thumbnail,
+        c.title AS title,
+        c.fees AS fees,
+        COALESCE(AVG(f.rating), 0) AS rating,
+        COUNT(f.feedback_id) AS reviews,
+        c.hour AS duration,
+        c.discount AS discount
+    FROM course c
+    LEFT JOIN feedback f ON f.course_id = c.course_id
+    GROUP BY 
+        c.course_id,
+        c.category_id,
+        c.thumbnail,
+        c.title,
+        c.fees,
+        c.hour,
+        c.discount
+    """,
+            nativeQuery = true)
+    List<DashboardCoursesProjection> findDashboardCourses();
+
+    // Fetch dashboard-ready course data by categoryId with average rating and total reviews
+    @Query(value = """
+    SELECT 
+        BIN_TO_UUID(c.course_id) AS id,
+        BIN_TO_UUID(c.category_id) AS categoryId,
+        c.thumbnail AS thumbnail,
+        c.title AS title,
+        c.fees AS fees,
+        COALESCE(AVG(f.rating), 0) AS rating,
+        COUNT(f.feedback_id) AS reviews,
+        c.hour AS duration,
+        c.discount AS discount
+    FROM course c
+    LEFT JOIN feedback f ON f.course_id = c.course_id
+    WHERE c.category_id = :categoryId
+    GROUP BY 
+        c.course_id,
+        c.category_id,
+        c.thumbnail,
+        c.title,
+        c.fees,
+        c.hour,
+        c.discount
+    """,
+            nativeQuery = true)
+    List<DashboardCoursesProjection> findDashboardCoursesByCategoryId(
+            @Param("categoryId") UUID categoryId
+    );
+
+
 }

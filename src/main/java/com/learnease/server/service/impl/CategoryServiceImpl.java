@@ -1,8 +1,8 @@
 package com.learnease.server.service.impl;
 
-import com.learnease.server.dto.CategoryRequestDto;
-import com.learnease.server.dto.CategoryUpdateRequestDto;
-import com.learnease.server.exception.custom_exception.BadClientRequestException;
+import com.learnease.server.dto.category.CategoryRequestDto;
+import com.learnease.server.dto.category.CategoryResponseDto;
+import com.learnease.server.dto.category.CategoryUpdateRequestDto;
 import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.Category;
@@ -52,9 +52,20 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+
+    public List<CategoryResponseDto> getAllCategories() {
+        return categoryRepository.findAll().stream()
+                .map(cat -> {
+                    CategoryResponseDto dto = new CategoryResponseDto();
+                    dto.setId(cat.getId());
+                    dto.setTitle(cat.getTitle());
+                    dto.setDescription(cat.getDescription());
+                    dto.setCategoryImageUrl(cat.getCategoryImageUrl());
+                    return dto;
+                })
+                .toList();
     }
+
 
     @Override
     public Category updateCategory(UUID id, CategoryUpdateRequestDto req) {

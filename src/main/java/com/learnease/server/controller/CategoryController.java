@@ -1,7 +1,7 @@
 package com.learnease.server.controller;
 
-import com.learnease.server.dto.CategoryRequestDto;
-import com.learnease.server.dto.CategoryUpdateRequestDto;
+import com.learnease.server.dto.category.CategoryRequestDto;
+import com.learnease.server.dto.category.CategoryUpdateRequestDto;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.Category;
 import com.learnease.server.service.CategoryService;
@@ -43,7 +43,7 @@ public class CategoryController {
             @RequestParam(required = false) String keyword
             ){
         if(categoryName==null && keyword==null){
-            return ResponseEntity.ok(categoryService.getAllCategories());
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(categoryService.getAllCategories());
         }
         if(categoryName!=null){
             Category category = categoryService.getCategoryByName(categoryName)
@@ -72,6 +72,4 @@ public class CategoryController {
 
         return ResponseEntity.ok(updatedCategory);
     }
-
-
 }

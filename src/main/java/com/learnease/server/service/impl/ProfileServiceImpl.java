@@ -1,7 +1,7 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
-import com.learnease.server.dto.Profile.*;
+import com.learnease.server.dto.profile.*;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
 import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;

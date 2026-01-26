@@ -1,7 +1,8 @@
 package com.learnease.server.service;
 
-import com.learnease.server.dto.CategoryRequestDto;
-import com.learnease.server.dto.CategoryUpdateRequestDto;
+import com.learnease.server.dto.category.CategoryRequestDto;
+import com.learnease.server.dto.category.CategoryResponseDto;
+import com.learnease.server.dto.category.CategoryUpdateRequestDto;
 import com.learnease.server.model.Category;
 import jakarta.validation.Valid;
 
@@ -13,7 +14,7 @@ public interface CategoryService {
     public Category registerCategory(CategoryRequestDto categoryRequest);
     public Optional<Category> getCategoryByName(String categoryName);
     public List<Category> getCategoryByKeyword(String keyword);
-    public List<Category> getAllCategories();
+    public List<CategoryResponseDto> getAllCategories();
 
     Category updateCategory(UUID id, @Valid CategoryUpdateRequestDto request);
 }

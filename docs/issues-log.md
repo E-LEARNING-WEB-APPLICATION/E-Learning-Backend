@@ -315,3 +315,54 @@ Enable cascade persistence on the `@OneToMany` relationship in `UserDetails`:
 )
 @JoinColumn(name = "user_id")
 private List<Education> educations = new ArrayList<>();
+```
+
+## Issue 007: Cannot project byte[] to java.util.UUID in native query
+
+### Problem
+When executing a native query with projection in Spring Data JPA, the following error occurs:
+
+Cannot project byte[] to java.util.UUID;  
+Target type is not an interface and no matching Converter found
+
+This error appears while mapping native query results to a projection or DTO
+that uses `java.util.UUID`.
+
+---
+
+### Cause
+In MySQL, UUIDs are commonly stored as `BINARY(16)` for performance optimization.
+
+When using native SQL queries:
+- `BINARY(16)` UUID columns are returned as `byte[]`
+- Spring Data JPA projections expect `java.util.UUID`
+- Spring cannot automatically convert `byte[]` to `UUID`
+
+As a result, the projection fails with a type conversion error.
+
+---
+
+### Solution
+Convert UUID values inside the native SQL query using `BIN_TO_UUID()` so that
+Spring receives UUID values instead of `byte[]`.
+
+Example fix in native query:
+
+BIN_TO_UUID(c.course_id) AS id  
+BIN_TO_UUID(c.category_id) AS categoryId
+
+This ensures UUID conversion happens at the database level and projection
+mapping works correctly.
+
+---
+
+### Result
+- Native query projections map correctly to `UUID`
+- No runtime type conversion or casting errors
+- Dashboard and read-only queries execute successfully
+
+---
+
+### Key Takeaway
+When using native queries with UUIDs stored as `BINARY(16)` in MySQL, always
+convert them using `BIN_TO_UUID()` to avoid projection and DTO mapping errors.
