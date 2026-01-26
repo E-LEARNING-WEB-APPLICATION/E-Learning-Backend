@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.UUID;
+
 
 @Getter
 @Setter
@@ -14,6 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CoursesDto {
 
+        private UUID courseId;
         private String title;
         private String description;
         private double fees;
