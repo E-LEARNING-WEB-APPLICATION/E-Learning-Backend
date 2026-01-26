@@ -51,9 +51,10 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/user/auth/**",
-                                "/api/v1/category/",
-                                "/api/v1/courses/allCourses",
-                                "/api/v1/courses/getCategoryCourses/{categoryId}",
+                                "/api/v1/category/",//Dashboard display category
+                                "/api/v1/courses/allCourses",//Dashboard display courses
+                                "/api/v1/courses/getCategoryCourses/{categoryId}",//Dashboard display category courses
+                                "/api/v1/instructor/getAllInstructor",//Dashboard display instructor
                                 "/api/v1/notifications/stream"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()
