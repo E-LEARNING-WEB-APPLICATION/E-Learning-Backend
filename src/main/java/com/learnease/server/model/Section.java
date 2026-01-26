@@ -1,5 +1,6 @@
 package com.learnease.server.model;
 
+import com.learnease.server.model.enums.ContentStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,12 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
+@Table(
+        name = "section",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"course_id", "section_number"})
+        }
+)
 @AttributeOverride(name = "id", column = @Column(name = "section_id"))
 public class Section extends BaseEntity{
 
@@ -24,8 +31,15 @@ public class Section extends BaseEntity{
     private String title;
     @NotNull
     private String description;
-    @OneToMany
-    //this will create a section_id as a foreign key in topics table
-    @JoinColumn(name = "section_id")
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id")
+    private Course course;
+
+    @OneToMany(mappedBy = "section", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Topic> topics = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ContentStatus status = ContentStatus.ACTIVE;
 }

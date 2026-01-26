@@ -18,6 +18,7 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     @Query("""
         SELECT new com.learnease.server.dto.CoursesDto(
+            c.id,
             c.title,
             c.description,
             c.fees,

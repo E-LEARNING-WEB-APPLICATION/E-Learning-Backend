@@ -40,9 +40,7 @@ public class Course extends BaseEntity{
             nullable = false
     )
     private Category category;
-    // This will create course_id as a foreign key in the section table
-    @OneToMany
-    @JoinColumn(name = "course_id")
+    @OneToMany(mappedBy = "course",  cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Section> sections = new ArrayList<>();
 
     @ManyToMany(mappedBy = "courses")
