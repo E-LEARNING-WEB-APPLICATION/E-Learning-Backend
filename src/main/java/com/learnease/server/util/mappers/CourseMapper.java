@@ -26,6 +26,7 @@ public class CourseMapper {
         return CourseResponseDto.builder()
                 .courseId(course.getId())
                 .iId(course.getInstructor() != null ? course.getInstructor().getId() : null)
+                .category(course.getCategory() != null ? course.getCategory().getTitle() : null)
                 .courseName(course.getTitle())
                 .courseDesc(course.getDescription())
                 .fees(course.getFees())

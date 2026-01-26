@@ -33,17 +33,19 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
 
     //left join fetch bcz course may exist with sections and same goes for topics
     @Query("""
-            SELECT DISTINCT c
-            FROM Course c
-            JOIN FETCH c.instructor
-            LEFT JOIN FETCH c.sections s
-            WHERE c.id = :courseId
+        SELECT DISTINCT c
+        FROM Course c
+        JOIN FETCH c.instructor
+        JOIN FETCH c.category
+        LEFT JOIN FETCH c.sections s
+        WHERE c.id = :courseId
     """)
+
     Optional<Course> findCourseGraphById(@Param("courseId") UUID courseId);
 
     // Fetch dashboard-ready course data with average rating and total reviews using a native SQL query
     @Query(value = """
-    SELECT 
+    SELECT
         BIN_TO_UUID(c.course_id) AS id,
         BIN_TO_UUID(c.category_id) AS categoryId,
         c.thumbnail AS thumbnail,
