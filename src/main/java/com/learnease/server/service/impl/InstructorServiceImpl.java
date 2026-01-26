@@ -4,6 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Category;
@@ -89,6 +90,32 @@ public class InstructorServiceImpl implements InstructorService {
         List<CoursesDto> courses = courseRepository.findByInstructor(instructor.getId());
 
         return courses;
+    }
+
+    @Override
+    public List<DashboardInstructorResponseDto> getAllInstructors() {
+        return instructorRepository.findAll()
+                .stream()
+                .map(i-> new DashboardInstructorResponseDto(
+                        i.getId(),
+                        i.getUserDetails().getFirstName() +" "+ i.getUserDetails().getLastName(),
+                        i.getBio(),
+                        i.getSpecializations().stream()
+                                .map(s-> s.getTitle())
+                                .toList(),
+                        i.getCourses().size(),
+                        i.getCourses().stream()
+                                .mapToInt(c -> c.getStudents().size())
+                                .sum(),
+                        i.getUserDetails().getProfilePic(),
+                        i.getUserDetails()
+                                .getUserAuth()
+                                .getEmail(),
+                        i.getGitHubUrl(),
+                        i.getLinkedInUrl(),
+                        i.getTwitterUrl()
+
+                )).toList();
     }
 
     @Override

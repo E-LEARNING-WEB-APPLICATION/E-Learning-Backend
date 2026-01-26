@@ -5,10 +5,12 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.model.Course;
 import com.learnease.server.service.InstructorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -78,6 +80,16 @@ public class InstructorController {
         CourseInstructorResponseDto response = instructorService.getInstructorById(id);
         return ResponseEntity.status(HttpStatus.ACCEPTED)
                 .body(new ApiResponse<CourseInstructorResponseDto>(true , response));
+    }
+
+    @Operation(
+            summary = "Get all the Instuctor",
+            description = "Fetch all superficial inforamtion about Instuctor to display on dashboard"
+    )
+    @GetMapping("/getAllInstructor")
+    public ResponseEntity<?> getAllInstructor(){
+        List<DashboardInstructorResponseDto> list = instructorService.getAllInstructors();
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(list);
     }
 
 }
