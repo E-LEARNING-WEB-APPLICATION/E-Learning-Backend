@@ -1,6 +1,7 @@
 package com.learnease.server.controller;
 
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.booking.CreateBookingRequestDto;
 import com.learnease.server.dto.booking.CreateBookingResponseDto;
@@ -23,7 +24,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @PostMapping
-    public ResponseEntity<CreateBookingResponseDto> createBooking(
+    public ResponseEntity<?> createBooking(
             @RequestBody @Valid CreateBookingRequestDto request,
             @AuthenticationPrincipal JWTDTO jwtdto
             ){
@@ -34,7 +35,7 @@ public class BookingController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(response);
+                .body(new ApiResponse<CreateBookingResponseDto>(true , response));
     }
 
     @PostMapping("/{bookingId}/verify-payment")

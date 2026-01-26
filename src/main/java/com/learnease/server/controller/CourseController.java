@@ -5,6 +5,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.course.CourseResponseDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
+import com.learnease.server.dto.course.EnrolledCourseResponseDto;
 import com.learnease.server.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -82,5 +83,25 @@ public class CourseController {
                 .status(HttpStatus.ACCEPTED)
                 .body(response);
     }
+
+    @Operation(
+            summary = "Get enrolled courses of logged-in student",
+            description = "Fetch all courses in which the authenticated student is enrolled"
+    )
+    @GetMapping("/my-courses")
+    public ResponseEntity<?> getMyEnrolledCourses(
+            @AuthenticationPrincipal JWTDTO user
+    ) {
+
+        UUID authId = user.getUserId();
+
+        List<EnrolledCourseResponseDto> response =
+                courseService.getMyEnrolledCourses(authId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ApiResponse<List<EnrolledCourseResponseDto>>(true , response));
+    }
+
 
 }
