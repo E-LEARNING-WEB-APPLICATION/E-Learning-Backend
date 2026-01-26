@@ -123,10 +123,14 @@ public class ProfileController {
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Get the Profile details for Instructor")
     @GetMapping("/instructor")
-    public ResponseEntity<?> getInstructorDetails(Authentication authentication){
+    public ResponseEntity<?> getInstructorDetails(@RequestParam(required = false) UUID instructorId,Authentication authentication){
         //to get the user id from the jwt token
         JWTDTO jwt = (JWTDTO) authentication.getPrincipal();
         UUID authId = jwt.getUserId();
+        if (instructorId!=null){
+            InstructorProfileResponseDto instructorProfileResponseDto = profileService.getInstructorDetailsById(instructorId);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(instructorProfileResponseDto);
+        }
         InstructorProfileResponseDto instructorProfileResponseDto = profileService.getInstructorDetails(authId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(instructorProfileResponseDto);
     }

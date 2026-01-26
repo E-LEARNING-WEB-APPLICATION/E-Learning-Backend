@@ -34,4 +34,6 @@ public interface ProfileService {
     ApiResponse updateSpecialization(UUID authId, SpecializationRequestDto specializationRequestDto);
 
     ApiResponse updateInstructorProfile(UUID authId, @Valid InstructorProfileRequestDto instructorProfileRequestDto);
+
+    InstructorProfileResponseDto getInstructorDetailsById(UUID instructorId);
 }
