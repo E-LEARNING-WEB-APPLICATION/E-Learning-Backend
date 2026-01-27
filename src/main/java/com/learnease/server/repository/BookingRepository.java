@@ -111,7 +111,7 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
         SELECT new com.learnease.server.dto.admin.CourseEnrollmentDTO(
             b.purchasedCourse.id,
             b.purchasedCourse.title,
-            CONCAT (b.instructor.userDetails.firstName," ", b.instructor.userDetails.lastName),
+            CONCAT (b.purchasedCourse.instructor.userDetails.firstName," ", b.purchasedCourse.instructor.userDetails.lastName),
             COUNT (b),
             AVG (f.rating)
         )
