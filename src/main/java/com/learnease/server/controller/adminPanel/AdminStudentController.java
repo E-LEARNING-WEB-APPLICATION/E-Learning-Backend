@@ -27,7 +27,7 @@ public class AdminStudentController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/count")
-    public ResponseEntity<?> getAllStudentCount(){
+    public ResponseEntity<Long> getAllStudentCount(){
         return ResponseEntity.ok(studentService.getCountOfStudents());
     }
 
@@ -47,7 +47,7 @@ public class AdminStudentController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/enrolled/active")
+    @GetMapping("/active/count")
     public ResponseEntity<?> getCountOfActiveStudent(@RequestParam String duration){
         switch (duration){
             case "1d":

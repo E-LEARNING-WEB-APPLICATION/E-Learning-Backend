@@ -23,7 +23,7 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
-    select sum(b.pricePaid) from Booking b
+    select COALESCE(sum(b.pricePaid), 0)  from Booking b
 """)
     BigDecimal findSumPricePaid();
 
@@ -145,6 +145,9 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
                     FROM instructor i
                     JOIN user_details ud
                         ON i.user_id = ud.user_id
+                    JOIN user_auth ua
+                        ON ud.auth_id = ua.auth_id
+                        AND ua.status = 'ACTIVE'
                     LEFT JOIN course c
                         ON c.instructor_id = i.instructor_id
                     LEFT JOIN feedback f

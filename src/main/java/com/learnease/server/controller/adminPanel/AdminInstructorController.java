@@ -28,7 +28,7 @@ public class AdminInstructorController {
     @Operation(summary =  "get all instructors by status, add status param PENDING to get pending instructors")
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getInstructorsByStatus(
+    public ResponseEntity<List<InstructorResponseDto>> getInstructorsByStatus(
             @RequestParam(name = "status", required = false) Status status
     ) {
         List<InstructorResponseDto> instructors = adminService.getInstructorByStatus(status);
@@ -38,7 +38,7 @@ public class AdminInstructorController {
     @Operation(summary =  "get all instructor count by status, add status param PENDING to get pending instructors count")
     @GetMapping("/count")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getInstructorsCountByStatus(
+    public ResponseEntity<ApiResponse<Long>> getInstructorsCountByStatus(
             @RequestParam(name = "status", required = false) Status status
     ) {
         long instructorCount = adminService.getInstructorCountByStatus(status);
