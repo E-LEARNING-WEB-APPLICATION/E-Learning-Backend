@@ -23,11 +23,9 @@ public class InstructorDashBoardStatisticsServiceImpl implements InstructorDashB
         Instructor instructor = instructorRepository.findByUserDetails_UserAuth_Id(authId)
                 .orElseThrow(()->new UserNotFoundException("No such Instructor Exist"));
 
-        List<CourseStudentCountDto> list = instructor.getCourses()
+        return instructor.getCourses()
                 .stream()
                 .map((c) -> new CourseStudentCountDto(c.getTitle(), c.getStudents().size()))
                 .toList();
-
-        return list;
     }
 }

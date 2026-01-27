@@ -4,7 +4,6 @@ package com.learnease.server.controller;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.instructor.instructorDashboard.CourseStudentCountDto;
 import com.learnease.server.service.InstructorDashBoardStatisticsService;
-import com.learnease.server.service.InstructorStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
