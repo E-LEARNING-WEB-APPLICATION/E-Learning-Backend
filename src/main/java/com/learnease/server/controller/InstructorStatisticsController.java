@@ -2,6 +2,7 @@ package com.learnease.server.controller;
 
 
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.instructor.instructorDashboard.CategoryCoursesCountDto;
 import com.learnease.server.dto.instructor.instructorDashboard.CourseStudentCountDto;
 import com.learnease.server.service.InstructorDashBoardStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(
         name = "Instructor Dashboard statistics api",
-        description = "Statistics include total no of student,courses,total income,wallet withdraw implementation "
+        description = "Statistics include total no of student,courses,total income,wallet withdraw implementation,etc"
 )
 public class InstructorStatisticsController {
     private final InstructorDashBoardStatisticsService instructorDashBoardStatisticsService;
@@ -35,8 +36,20 @@ public class InstructorStatisticsController {
 
         JWTDTO jwtdto = (JWTDTO) authentication.getPrincipal();
         UUID authId = jwtdto.getUserId();
-        List<CourseStudentCountDto> courseStudentCountDto = instructorDashBoardStatisticsService.getStudentPerCourses(authId);
+        List<CourseStudentCountDto> list = instructorDashBoardStatisticsService.getStudentPerCourses(authId);
 
-        return ResponseEntity.status(HttpStatus.FOUND).body(courseStudentCountDto);
+        return ResponseEntity.status(HttpStatus.FOUND).body(list);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "No of Courses per Category for all the courses of the instructor")
+    @GetMapping("/coursesPerCategory")
+    public ResponseEntity<?> getCoursesPerCategory(Authentication authentication){
+        JWTDTO jwtdto = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwtdto.getUserId();
+
+        List<CategoryCoursesCountDto> list = instructorDashBoardStatisticsService.getCoursesPerCategory(authId);
+
+        return ResponseEntity.status(HttpStatus.FOUND).body(list);
     }
 }
