@@ -5,6 +5,7 @@ import com.learnease.server.model.Booking;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.enums.BookingStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -108,20 +109,25 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
-        SELECT new com.learnease.server.dto.admin.CourseEnrollmentDTO(
-            b.purchasedCourse.id,
-            b.purchasedCourse.title,
-            CONCAT (b.purchasedCourse.instructor.userDetails.firstName," ", b.purchasedCourse.instructor.userDetails.lastName),
-            COUNT (b),
-            AVG (f.rating)
-        )
-        FROM Booking b
-        JOIN Feedback f on f.course = b.purchasedCourse
-        GROUP BY b.purchasedCourse
-        ORDER BY COUNT(b) DESC
-        LIMIT :top
-        """)
-    List<CourseEnrollmentDTO> findTopCoursesByEnrollments(@Param("top") int top);
+    SELECT new com.learnease.server.dto.admin.CourseEnrollmentDTO(
+        b.purchasedCourse.id,
+        b.purchasedCourse.title,
+        CONCAT(
+            b.purchasedCourse.instructor.userDetails.firstName, ' ',
+            b.purchasedCourse.instructor.userDetails.lastName
+        ),
+        COUNT(b),
+        COALESCE(CAST(AVG(f.rating) AS double), 0.0)
+    )
+    FROM Booking b
+    LEFT JOIN Feedback f ON f.course = b.purchasedCourse
+    GROUP BY b.purchasedCourse.id,
+             b.purchasedCourse.title,
+             b.purchasedCourse.instructor.userDetails.firstName,
+             b.purchasedCourse.instructor.userDetails.lastName
+    ORDER BY COUNT(b) DESC
+""")
+    List<CourseEnrollmentDTO> findTopCoursesByEnrollments(Pageable pageable);
 
     List<Booking> findByStudentAndStatusOrderByPaidAtDesc(
             Student student,
