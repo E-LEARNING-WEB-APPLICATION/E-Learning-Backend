@@ -5,6 +5,7 @@ import com.learnease.server.model.Booking;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.enums.BookingStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -177,4 +178,59 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
             @Param("limit") int limit
     );
 
+
+    @Query("""
+        SELECT new com.learnease.server.dto.admin.EnrolledStudentAdminDTO(
+            b.id,
+            b.status,
+            b.purchaseTime,
+            b.paidAt,
+
+            c.id,
+            c.title,
+
+            s.id,
+            ud.id,
+            CONCAT(ud.firstName, ' ', ud.lastName),
+            ua.email,
+            ud.phoneNo,
+
+            i.id,
+            CONCAT(iud.firstName, ' ', iud.lastName),
+
+            b.pricePaid,
+            b.currency,
+            b.paymentMethod
+        )
+        FROM Booking b
+        JOIN b.purchasedCourse c
+        JOIN b.student s
+        JOIN s.userDetails ud
+        JOIN ud.userAuth ua
+        JOIN b.instructor i
+        JOIN i.userDetails iud
+        WHERE c.id = :courseId
+        ORDER BY b.purchaseTime DESC
+    """)
+    Page<EnrolledStudentAdminDTO> findEnrolledStudentsByCourse(
+            @Param("courseId") UUID courseId,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT new com.learnease.server.dto.admin.MonthlyStudentEnrollmentDTO(
+        YEAR(b.createdAt),
+        MONTH(b.createdAt),
+        COUNT(b.id)
+    )
+    FROM Booking b
+    JOIN b.purchasedCourse c
+    WHERE b.createdAt >= :startDate
+    AND c.id = :courseId
+    GROUP BY YEAR(b.createdAt), MONTH(b.createdAt)
+    ORDER BY YEAR(b.createdAt), MONTH(b.createdAt)
+    """)
+    List<MonthlyStudentEnrollmentDTO> findCourseStudentEnrollmentByMonth(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("courseId") UUID courseId);
 }
