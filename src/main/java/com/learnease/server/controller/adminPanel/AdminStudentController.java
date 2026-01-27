@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 
 @RestController
@@ -63,10 +64,11 @@ public class AdminStudentController {
 
     @GetMapping("/enrolled/monthly")
     public ResponseEntity<List<MonthlyStudentEnrollmentDTO>> getStudentEnrollments(
-            @RequestParam(defaultValue = "6") int months
+            @RequestParam(defaultValue = "6") int months,
+            @RequestParam(required = false) UUID courseId
     ) {
         return ResponseEntity.ok(
-                statisticsService.getMonthlyStudentEnrollments(months)
+                statisticsService.getMonthlyStudentEnrollments(months, courseId)
         );
     }
 

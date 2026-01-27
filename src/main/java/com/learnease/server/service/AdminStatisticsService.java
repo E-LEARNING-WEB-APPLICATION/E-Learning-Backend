@@ -16,7 +16,7 @@ public interface AdminStatisticsService {
 
     BigDecimal getPreviousMonthRevenue();
 
-    List<MonthlyStudentEnrollmentDTO> getMonthlyStudentEnrollments(int monthsBack);
+    List<MonthlyStudentEnrollmentDTO> getMonthlyStudentEnrollments(int monthsBack, UUID courseId);
 
     BigDecimal getTotalRevenue();
 }
