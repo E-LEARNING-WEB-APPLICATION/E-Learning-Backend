@@ -23,6 +23,11 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
+    select sum(b.pricePaid) from Booking b
+""")
+    BigDecimal findSumPricePaid();
+
+    @Query("""
         SELECT new com.learnease.server.dto.admin.MonthlyRevenueDTO(
             YEAR(b.paidAt),
             MONTH(b.paidAt),
@@ -124,5 +129,43 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
 
+
+    @Query(value = """
+ SELECT *
+                FROM (
+                    SELECT
+                        BIN_TO_UUID(i.instructor_id) AS instructorId,
+                        CONCAT(ud.first_name, ' ', ud.last_name) AS instructorName,
+                        COALESCE(SUM(b.price_paid), 0) AS totalRevenue,
+                        COUNT(DISTINCT b.booking_id) AS totalEnrollments,
+                        COALESCE(AVG(f.rating), 0) AS avgCourseRating,
+                        COUNT(DISTINCT c.course_id) AS totalCourses,
+                        RANK() OVER (ORDER BY SUM(b.price_paid) DESC) AS `rankRevenue`,
+                        RANK() OVER (ORDER BY COUNT(DISTINCT b.booking_id) DESC) AS `rankEnrollments`
+                    FROM instructor i
+                    JOIN user_details ud
+                        ON i.user_id = ud.user_id
+                    LEFT JOIN course c
+                        ON c.instructor_id = i.instructor_id
+                    LEFT JOIN feedback f
+                        ON c.course_id = f.course_id
+                    LEFT JOIN booking b
+                        ON b.course_id = c.course_id
+                        AND b.status = :status
+                    GROUP BY i.instructor_id, ud.first_name, ud.last_name
+                ) t
+                ORDER BY
+                    CASE
+                        WHEN :sortBy = 'REVENUE' THEN t.totalRevenue
+                        WHEN :sortBy = 'ENROLLMENTS' THEN t.totalEnrollments
+                    END DESC
+                LIMIT :limit
+                
+""", nativeQuery = true)
+    List<InstructorLeaderboardDTO> findTopInstructors(
+            @Param("status") String status,
+            @Param("sortBy") String sortBy,
+            @Param("limit") int limit
+    );
 
 }

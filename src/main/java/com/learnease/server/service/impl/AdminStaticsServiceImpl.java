@@ -89,5 +89,10 @@ public class AdminStaticsServiceImpl implements AdminStatisticsService {
         return studentRepository.findMonthlyStudentEnrollments(startDate);
     }
 
+    @Override
+    public BigDecimal getTotalRevenue() {
+        return bookingRepository.findSumPricePaid();
+    }
+
 
 }

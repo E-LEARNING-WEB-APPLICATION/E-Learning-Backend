@@ -550,3 +550,31 @@ This ensures:
 ✔ Token attached correctly to every request
 ✔ Stable authentication flow
 
+
+
+## DEBUGGING HELP
+
+#### when trying to debug a type mismatch for native query use this code
+it saves you some hair pulling
+
+```java
+import org.springframework.data.jpa.repository.Query;
+
+// in repository
+@Query(value = "-- your native query here", nativeQuery = true)
+List<Object[]> debugNativeQuery(@Param("status") String status, @Param("sortBy") String sortBy, @Param("limit") int limit);
+```
+```java
+// in service
+    public void debugTypes() {
+        // Pass dummy values to satisfy parameters
+        List<Object[]> results = bookingRepository.debugNativeQuery("PUBLISHED", "REVENUE", 1);
+
+        if (!results.isEmpty()) {
+            Object[] row = results.get(0);
+            for (int i = 0; i < row.length; i++) {
+                System.out.println("Column " + i + " type: " + (row[i] != null ? row[i].getClass().getName() : "NULL"));
+            }
+        }
+    }
+```

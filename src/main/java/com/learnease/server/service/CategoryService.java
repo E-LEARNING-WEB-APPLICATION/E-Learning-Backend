@@ -15,6 +15,7 @@ public interface CategoryService {
     public Optional<Category> getCategoryByName(String categoryName);
     public List<Category> getCategoryByKeyword(String keyword);
     public List<CategoryResponseDto> getAllCategories();
+    long getAllCategoryCount();
 
     Category updateCategory(UUID id, @Valid CategoryUpdateRequestDto request);
 }

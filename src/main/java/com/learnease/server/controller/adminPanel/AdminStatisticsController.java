@@ -1,11 +1,13 @@
 package com.learnease.server.controller.adminPanel;
 
-import com.learnease.server.dto.admin.MonthlyRevenueDTO;
-import com.learnease.server.service.AdminStatisticsService;
-import com.learnease.server.service.CourseStatisticsService;
-import com.learnease.server.service.InstructorStatisticsService;
+import com.learnease.server.dto.admin.*;
+import com.learnease.server.service.*;
+import com.learnease.server.service.analytics.AdminCourseAnalyticsService;
+import com.learnease.server.util.enums.CourseSortField;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +23,8 @@ public class AdminStatisticsController {
     private final AdminStatisticsService statisticsService;
     private final InstructorStatisticsService instructorStatisticsService;
     private final CourseStatisticsService courseStatisticsService;
+    private final AdminCourseAnalyticsService courseAnalyticsService;
+    private final CategoryService categoryService;
 
     @GetMapping("/revenue/by-month")
     public ResponseEntity<List<MonthlyRevenueDTO>> getRevenueByMonth(
@@ -69,17 +73,51 @@ public class AdminStatisticsController {
     }
 
     @GetMapping("/instructors/revenue")
-    public ResponseEntity<?> getTopInstructorsByRevenue(@RequestParam int top){
+    public ResponseEntity<List<InstructorMonthlyRevenueDTO>> getTopInstructorsByRevenue(@RequestParam int top){
         return ResponseEntity.ok(instructorStatisticsService.getTopInstructorByMonthlyRevenue(top));
     }
 
     @GetMapping("/instructors/enrollments")
-    public ResponseEntity<?> getTopInstructorsByEnrollments(@RequestParam int top){
+    public ResponseEntity<List<InstructorEnrollmentsDTO>> getTopInstructorsByEnrollments(@RequestParam int top){
         return ResponseEntity.ok(instructorStatisticsService.getTopInstructorByEnrollments(top));
     }
 
     @GetMapping("/course/enrollments")
-    public ResponseEntity<?> getTopCoursesByEnrollments(@RequestParam int top){
+    public ResponseEntity<List<CourseEnrollmentDTO>> getTopCoursesByEnrollments(@RequestParam int top){
         return ResponseEntity.ok(courseStatisticsService.getTopCoursesByEnrollments(top));
+    }
+
+    @GetMapping("/course/overview")
+    public ResponseEntity<Page<AdminCourseOverviewDto>> getCoursesOverview(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "TOTAL_REVENUE") CourseSortField sortBy,
+            @RequestParam(defaultValue = "DESC") Sort.Direction direction
+    ) {
+        return ResponseEntity.ok(
+                courseAnalyticsService.getCoursesOverview(page, size, sortBy, direction)
+        );
+    }
+
+    @GetMapping("/category/count")
+    public ResponseEntity<Long> getCategoryCount(){
+        return ResponseEntity.ok(categoryService.getAllCategoryCount());
+    }
+
+    @GetMapping("/category/distribution")
+    public ResponseEntity<List<CategoryDistributionDTO>> getCategoryDistribution(){
+        return ResponseEntity.ok(courseAnalyticsService.getCategoryDistribution());
+    }
+
+    @GetMapping("/course/by-rating")
+    public ResponseEntity<List<CourseRatingDTO>> getTopCourseRatings(
+            @RequestParam int top
+    ){
+        return ResponseEntity.ok(courseAnalyticsService.getTopCourseRatings(top));
+    }
+
+    @GetMapping("/revenue")
+    public ResponseEntity<BigDecimal> getTotalRevenue(){
+        return ResponseEntity.ok(statisticsService.getTotalRevenue());
     }
 }
