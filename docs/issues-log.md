@@ -368,6 +368,190 @@ When using native queries with UUIDs stored as `BINARY(16)` in MySQL, always
 convert them using `BIN_TO_UUID()` to avoid projection and DTO mapping errors.
 
 
+
+
+
+## 🐞 Issue-008: Protected APIs return 403 on first login (Axios API Client)
+
+---
+
+## 🧩 Problem
+
+After a successful login, API requests that require authentication
+(e.g. `/api/v1/bookings`) returned **403 Forbidden**.
+
+However:
+- Refreshing the page fixed the issue
+- The same API worked correctly after refresh
+
+This behavior occurred consistently on the **first login only**.
+
+---
+
+## ❌ Error Observed
+
+- Backend response: **403 Forbidden**
+- No token-related error in backend logs
+- APIs worked correctly after browser refresh
+
+---
+
+## 🔍 Root Cause Analysis
+
+The issue was caused by **how the JWT token was attached to Axios requests**.
+
+### ❌ Incorrect Axios Configuration
+
+```js
+const apiClient = axios.create({
+  baseURL: "http://localhost:8080/",
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
+````
+
+### Why this breaks
+
+* `axios.create()` is executed **once at import time**
+* During first login:
+
+    * Token is **not yet stored** in `localStorage`
+    * Axios permanently stores `Authorization: Bearer null`
+* All subsequent requests use the **stale Authorization header**
+* Page refresh works because:
+
+    * Axios is reinitialized
+    * Token now exists in `localStorage`
+
+---
+
+## 🤔 Why the Page Refresh Fixed It
+
+* `localStorage` persists across refresh
+* On reload, Axios re-reads the token
+* Authorization header is correctly attached
+* API requests succeed
+
+Refresh did not fix the bug —
+it only **masked the timing issue**.
+
+---
+
+## ❌ What Was NOT the Cause
+
+This issue was **NOT caused by**:
+
+* Spring Security configuration
+* Token generation logic
+* Backend authorization rules
+* CORS configuration
+* Controller or service logic
+
+Backend authentication was working correctly.
+
+---
+
+## ✅ Solution
+
+Use an **Axios request interceptor** to attach the token
+**before every request**, instead of during client creation.
+
+---
+
+## 🔧 Updated Axios Configuration
+
+```js
+import axios from "axios";
+
+const apiClient = axios.create({
+  baseURL: "http://localhost:8080/",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Attach token dynamically before each request
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+export default apiClient;
+```
+
+---
+
+## 🔁 Login Flow Requirement
+
+The token must be **saved before navigating** to protected routes.
+
+### ✅ Correct Flow
+
+```js
+localStorage.setItem("token", response.data.token);
+navigate("/dashboard");
+```
+
+### ❌ Incorrect Flow
+
+```js
+navigate("/dashboard");
+localStorage.setItem("token", response.data.token);
+```
+
+---
+
+## 🛡 Recommended Enhancements
+
+### Global 401 Handling (Optional but Recommended)
+
+```js
+apiClient.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+    return Promise.reject(err);
+  }
+);
+```
+
+This ensures:
+
+* Automatic logout on token expiry
+* No silent authorization failures
+
+---
+
+## 🧠 Key Takeaways
+
+* Never read authentication tokens during Axios initialization
+* Always attach tokens using request interceptors
+* First-login 403 errors usually indicate **timing issues**
+* Page refresh fixing auth issues is a strong sign of stale headers
+
+---
+
+## 📌 Final Status
+
+✔ Issue resolved
+✔ No 403 on first login
+✔ Token attached correctly to every request
+✔ Stable authentication flow
+
+
+
 ## DEBUGGING HELP
 
 #### when trying to debug a type mismatch for native query use this code
