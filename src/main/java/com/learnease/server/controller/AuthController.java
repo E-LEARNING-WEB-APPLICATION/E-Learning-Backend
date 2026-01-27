@@ -19,6 +19,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+
 
 @RestController
 @RequestMapping("/user/auth")
@@ -30,8 +32,6 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService; // to call the service methods
-    private final AuthenticationManager authenticationManager; //for the Managers authenticate method
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "Register a Student")
     @PostMapping("/register/student")
@@ -55,24 +55,9 @@ public class AuthController {
 
     @Operation(summary = "Sign in a User")
     @PostMapping("/signIn")
-    public ResponseEntity<?> signIn(@RequestBody @Valid LoginRequestDto requestDto){
-        /*
-            1.Invoke AuthenticationManager's authenticate method
-            public Authentication authenticate(Authentication auth)
-            Failure - throws AuthenticationException
+    public ResponseEntity<LoginResponseDto> signIn(@RequestBody @Valid LoginRequestDto requestDto){
 
-            Authenticcation - i/f
-            Implemented by class -
-            UserNamePasswordAuthenticationToken(Object email , Object password)
-         */
-
-        Authentication fullyAuthenticated = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        requestDto.getEmail() , requestDto.getPassword()
-                ));
-        UserAuth userAuth = (UserAuth) fullyAuthenticated.getPrincipal();
-        String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
         return ResponseEntity.status(200)
-                .body(new LoginResponseDto( true ,"Login Successful" , token));
+                .body(authService.login(requestDto));
     }
 }

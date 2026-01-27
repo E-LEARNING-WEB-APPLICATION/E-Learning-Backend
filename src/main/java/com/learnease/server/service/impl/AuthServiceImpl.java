@@ -2,6 +2,8 @@ package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.auth.InstructorRegisterRequestDto;
+import com.learnease.server.dto.auth.LoginRequestDto;
+import com.learnease.server.dto.auth.LoginResponseDto;
 import com.learnease.server.dto.auth.StudentRegisterRequestDto;
 import com.learnease.server.dto.notification.SendNotificationDTO;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
@@ -15,10 +17,16 @@ import com.learnease.server.repository.StudentRepository;
 import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.AuthService;
 import com.learnease.server.service.NotificationService;
+import com.learnease.server.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +38,8 @@ public class AuthServiceImpl implements AuthService {
     private final InstructorRepository instructorRepository; //used to save the instructor entity to the db
     private final PasswordEncoder passwordEncoder; //to encode the password
     private final NotificationService notificationService;
+    private final AuthenticationManager authenticationManager; //for the Managers authenticate method
+    private final JwtUtil jwtUtil;
 
 
     @Override
@@ -101,5 +111,26 @@ public class AuthServiceImpl implements AuthService {
         );
 
         return new ApiResponse(true, "Instructor Registered Successfully.");
+    }
+
+    public LoginResponseDto login(LoginRequestDto requestDto){
+              /*
+            1.Invoke AuthenticationManager's authenticate method
+            public Authentication authenticate(Authentication auth)
+            Failure - throws AuthenticationException
+
+            Authenticcation - i/f
+            Implemented by class -
+            UserNamePasswordAuthenticationToken(Object email , Object password)
+         */
+
+        Authentication fullyAuthenticated = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        requestDto.getEmail() , requestDto.getPassword()
+                ));
+        UserAuth userAuth = (UserAuth) fullyAuthenticated.getPrincipal();
+        userAuth.setLastLoginAt(LocalDateTime.now());
+        String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
+        return new LoginResponseDto(true, "Login Successful", token);
     }
 }
