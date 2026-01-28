@@ -4,20 +4,35 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.course.AddSectionReqDto;
+import com.learnease.server.dto.course.AddTopicReqDto;
+import com.learnease.server.dto.course.ShowSectionsResDto;
+import com.learnease.server.dto.course.TopicResponseDto;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
+import com.learnease.server.dto.notification.SendNotificationDTO;
+import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
+import com.learnease.server.model.*;
+import com.learnease.server.repository.*;
 import com.learnease.server.model.Category;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.UserDetails;
+import com.learnease.server.model.enums.NotificationPriority;
+import com.learnease.server.model.enums.NotificationSubjectType;
+import com.learnease.server.model.enums.NotificationType;
+import com.learnease.server.model.enums.Role;
 import com.learnease.server.repository.CategoryRepository;
 import com.learnease.server.repository.CourseRepository;
 import com.learnease.server.repository.InstructorRepository;
 import com.learnease.server.repository.UserDetailRepository;
 import com.learnease.server.service.InstructorService;
+import com.learnease.server.service.NotificationService;
 import com.learnease.server.util.mappers.InstructorMapper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -35,6 +50,10 @@ public class InstructorServiceImpl implements InstructorService {
     private final CategoryRepository categoryRepository;
     private final S3Service s3Service;
     private final InstructorMapper instructorMapper;
+    private final SectionRepository sectionRepository;
+    private final TopicRepository topicRepository;
+    private final TopicServiceImpl topicService;
+    private final NotificationService notificationService;
 
     @Override
     public ApiResponse addCourse(String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user) {
@@ -75,6 +94,18 @@ public class InstructorServiceImpl implements InstructorService {
            return new ApiResponse(false,"Unable to save course in the database");
        }
 
+       notificationService.sendNotification(
+               SendNotificationDTO.builder()
+                       .title("new course arrived ")
+                       .message("check this new course " + course.getTitle())
+                       .type(NotificationType.COURSE_PUBLISHED)
+                       .priority(NotificationPriority.LOW)
+                       .subjectId(course.getId())
+                       .subjectType(NotificationSubjectType.COURSE)
+                       .role(Role.STUDENT)
+                       .build()
+
+       );
        return new ApiResponse(true,"Course Added Successfully");
 
 
@@ -117,6 +148,68 @@ public class InstructorServiceImpl implements InstructorService {
 
                 )).toList();
     }
+
+    @Override
+    public ApiResponse addSection(UUID userId, AddSectionReqDto reqDto) {
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Instructor Not Found"));
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId()).orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+        Course course = courseRepository.findById(reqDto.getCourseId()).orElseThrow(() -> new ResourceNotFoundException("Course Not Found"));
+        Section section = new Section();
+        section.setSectionNumber(reqDto.getSectionNumber());
+        section.setTitle(reqDto.getSectionTitle());
+        section.setDescription(reqDto.getSectionDesc());
+        section.setCourse(course);
+        Section s = sectionRepository.save(section);
+        return new ApiResponse(true,s.getId());
+    }
+
+    @Override
+    public List<ShowSectionsResDto> getAllSections(UUID courseId , UUID userId) {
+
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Instructor Not Found"));
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId()).orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("Course Not Found"));
+        if(!course.getInstructor().getId().equals(instructor.getId()))
+        {
+            throw new AuthorizationDeniedException("Can't access Another Instructor Course Sections");
+        }
+        List<ShowSectionsResDto> allSections = sectionRepository.getAllSections(courseId);
+        return allSections;
+    }
+
+   @Override
+    public ApiResponse addTopic(UUID userId, AddTopicReqDto reqDto) {
+
+        String videoUrl;
+        try {
+            videoUrl = s3Service.uploadFile(
+                    reqDto.getVideo(), "topics/videos"
+            );
+        } catch (IOException e) {
+            throw new FileStorageException("Failed to upload video", e);
+        }
+
+        return topicService.saveTopic(userId, reqDto, videoUrl);
+    }
+
+    @Override
+    public List<TopicResponseDto> getTopics(UUID sectionId, UUID userId) {
+
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
+                .orElseThrow(()-> new ResourceNotFoundException("Instructor Not Found"));
+        Instructor instructor = instructorRepository.findByUserDetails_Id(userDetails.getId()).orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+        Section section = sectionRepository.findById(sectionId).orElseThrow(()-> new ResourceNotFoundException("Section Not Found"));
+        if(!section.getCourse().getInstructor().getId().equals(instructor.getId()))
+        {
+            throw new AuthorizationDeniedException("Can't access Another Instructor Course Sections");
+        }
+
+        List<TopicResponseDto> topicResponseDtos = topicRepository.getAllTopics(sectionId);
+        return topicResponseDtos;
+    }
+
 
     @Override
     public CourseInstructorResponseDto getInstructorById(UUID instructorId) {

@@ -4,6 +4,8 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
+import com.learnease.server.dto.auth.AdminUpdateProfileRequest;
+import com.learnease.server.dto.auth.PasswordUpdateDto;
 import com.learnease.server.model.Admin;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.enums.Status;
@@ -24,7 +26,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/v1/admin/")
+@RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 @Tag(name = "Admin APIs", description = "apis for admin related activities")
 public class AdminController {
@@ -34,7 +36,7 @@ public class AdminController {
     @Operation(summary = "register new admin")
     @PreAuthorize("hasRole('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
-    @PostMapping("register")
+    @PostMapping("/register")
     public ResponseEntity<?> registerAdmin(
             @AuthenticationPrincipal JWTDTO user,
             @Valid @RequestPart("data") AdminRegisterRequest adminRegisterRequest,
@@ -42,6 +44,30 @@ public class AdminController {
             Admin newAdmin = adminService.registerAdmin(user.getUserId(), adminRegisterRequest, profilePic);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new ApiResponse(true, "new admin registered successfully!"));
+    }
+
+    @Operation(summary = "update admin details")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/profile")
+    public ResponseEntity<?> updateAdminProfile(
+            @AuthenticationPrincipal JWTDTO user,
+            @Valid @RequestPart("data") AdminUpdateProfileRequest adminRegisterRequest,
+            @RequestPart("profilePic")MultipartFile profilePic) {
+        Admin newAdmin = adminService.updateAdminProfile(user.getUserId(), adminRegisterRequest, profilePic);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse(true, "admin profile updated successfully!"));
+    }
+
+    @Operation(summary = "update admin password")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/password")
+    public ResponseEntity<ApiResponse<String>> updatePassword(
+            @AuthenticationPrincipal JWTDTO user,
+            @Valid @RequestBody PasswordUpdateDto dto
+            ){
+        adminService.updatePassword(user.getUserId(), dto);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, "Password updated successfully"));
     }
 
 }
