@@ -6,11 +6,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface NotificationRecipientRepository extends JpaRepository<NotificationRecipient, UUID> {
-    public Page<NotificationRecipient> findByRecipientAndDeletedFalse(UserAuth user, Pageable pageable);
-    public Page<NotificationRecipient> findByRecipientAndDeletedFalseAndIsRead(UserAuth user, boolean isRead, Pageable pageable);
-    public long countAllByRecipient(UserAuth userAuth);
-    public long countAllByRecipientAndIsRead(UserAuth userAuth, boolean isRead);
+    Page<NotificationRecipient> findByRecipientAndDeletedFalse(UserAuth user, Pageable pageable);
+    Page<NotificationRecipient> findByRecipientAndDeletedFalseAndIsRead(UserAuth user, boolean isRead, Pageable pageable);
+    Optional<NotificationRecipient> findByNotificationIdAndRecipientId(UUID notificationId, UUID recipientId);
+    long countAllByRecipient(UserAuth userAuth);
+    long countAllByRecipientAndIsRead(UserAuth userAuth, boolean isRead);
 }
