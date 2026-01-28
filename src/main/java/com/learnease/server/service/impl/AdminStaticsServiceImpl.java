@@ -81,11 +81,14 @@ public class AdminStaticsServiceImpl implements AdminStatisticsService {
 
     @Override
     public List<MonthlyStudentEnrollmentDTO> getMonthlyStudentEnrollments(
-            int monthsBack
+            int monthsBack,
+            UUID courseId
     ) {
         LocalDateTime startDate =
                 LocalDateTime.now().minusMonths(monthsBack);
-
+        if(courseId!=null){
+            return bookingRepository.findCourseStudentEnrollmentByMonth(startDate, courseId);
+        }
         return studentRepository.findMonthlyStudentEnrollments(startDate);
     }
 

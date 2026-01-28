@@ -1,6 +1,7 @@
 package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.InstructorResponseDto;
+import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.model.Admin;
@@ -15,6 +16,10 @@ import com.learnease.server.util.mappers.AddressMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +40,7 @@ public class AdminServiceImpl implements AdminService {
     private final S3Service s3Service;
     private final CourseRepository courseRepository;
     private final StudentRepository studentRepository;
+    private final BookingRepository bookingRepository;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -128,5 +134,20 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public long getActiveStudentCountByDate(LocalDateTime afterDate) {
         return studentRepository.countAllByUserDetails_UserAuth_LastLoginAtAfter(afterDate);
+    }
+
+    @Override
+    public Page<EnrolledStudentAdminDTO> getEnrolledStudents(
+            UUID courseId,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Direction.DESC, "purchaseTime")
+        );
+
+        return bookingRepository.findEnrolledStudentsByCourse(courseId, pageable);
     }
 }

@@ -1,12 +1,14 @@
 package com.learnease.server.service;
 
 import com.learnease.server.dto.InstructorResponseDto;
+import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.model.Admin;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.Status;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,4 +24,9 @@ public interface AdminService {
     public Instructor rejectInstructor(UUID adminId, UUID instructorID);
     public long getAllCourseCount();
     public long getActiveStudentCountByDate(LocalDateTime afterDate);
+    Page<EnrolledStudentAdminDTO> getEnrolledStudents(
+            UUID courseId,
+            int page,
+            int size
+    );
 }

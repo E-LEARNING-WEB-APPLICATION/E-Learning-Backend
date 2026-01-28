@@ -5,6 +5,8 @@ import com.learnease.server.model.Booking;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.enums.BookingStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,7 +25,7 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
-    select sum(b.pricePaid) from Booking b
+    select COALESCE(sum(b.pricePaid), 0)  from Booking b
 """)
     BigDecimal findSumPricePaid();
 
@@ -108,20 +110,25 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
-        SELECT new com.learnease.server.dto.admin.CourseEnrollmentDTO(
-            b.purchasedCourse.id,
-            b.purchasedCourse.title,
-            CONCAT (b.instructor.userDetails.firstName," ", b.instructor.userDetails.lastName),
-            COUNT (b),
-            AVG (f.rating)
-        )
-        FROM Booking b
-        JOIN Feedback f on f.course = b.purchasedCourse
-        GROUP BY b.purchasedCourse
-        ORDER BY COUNT(b) DESC
-        LIMIT :top
-        """)
-    List<CourseEnrollmentDTO> findTopCoursesByEnrollments(@Param("top") int top);
+    SELECT new com.learnease.server.dto.admin.CourseEnrollmentDTO(
+        b.purchasedCourse.id,
+        b.purchasedCourse.title,
+        CONCAT(
+            b.purchasedCourse.instructor.userDetails.firstName, ' ',
+            b.purchasedCourse.instructor.userDetails.lastName
+        ),
+        COUNT(b),
+        COALESCE(CAST(AVG(f.rating) AS double), 0.0)
+    )
+    FROM Booking b
+    LEFT JOIN Feedback f ON f.course = b.purchasedCourse
+    GROUP BY b.purchasedCourse.id,
+             b.purchasedCourse.title,
+             b.purchasedCourse.instructor.userDetails.firstName,
+             b.purchasedCourse.instructor.userDetails.lastName
+    ORDER BY COUNT(b) DESC
+""")
+    List<CourseEnrollmentDTO> findTopCoursesByEnrollments(Pageable pageable);
 
     List<Booking> findByStudentAndStatusOrderByPaidAtDesc(
             Student student,
@@ -145,6 +152,9 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
                     FROM instructor i
                     JOIN user_details ud
                         ON i.user_id = ud.user_id
+                    JOIN user_auth ua
+                        ON ud.auth_id = ua.auth_id
+                        AND ua.status = 'ACTIVE'
                     LEFT JOIN course c
                         ON c.instructor_id = i.instructor_id
                     LEFT JOIN feedback f
@@ -168,4 +178,59 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
             @Param("limit") int limit
     );
 
+
+    @Query("""
+        SELECT new com.learnease.server.dto.admin.EnrolledStudentAdminDTO(
+            b.id,
+            b.status,
+            b.purchaseTime,
+            b.paidAt,
+
+            c.id,
+            c.title,
+
+            s.id,
+            ud.id,
+            CONCAT(ud.firstName, ' ', ud.lastName),
+            ua.email,
+            ud.phoneNo,
+
+            i.id,
+            CONCAT(iud.firstName, ' ', iud.lastName),
+
+            b.pricePaid,
+            b.currency,
+            b.paymentMethod
+        )
+        FROM Booking b
+        JOIN b.purchasedCourse c
+        JOIN b.student s
+        JOIN s.userDetails ud
+        JOIN ud.userAuth ua
+        JOIN b.instructor i
+        JOIN i.userDetails iud
+        WHERE c.id = :courseId
+        ORDER BY b.purchaseTime DESC
+    """)
+    Page<EnrolledStudentAdminDTO> findEnrolledStudentsByCourse(
+            @Param("courseId") UUID courseId,
+            Pageable pageable
+    );
+
+    @Query("""
+    SELECT new com.learnease.server.dto.admin.MonthlyStudentEnrollmentDTO(
+        YEAR(b.createdAt),
+        MONTH(b.createdAt),
+        COUNT(b.id)
+    )
+    FROM Booking b
+    JOIN b.purchasedCourse c
+    WHERE b.createdAt >= :startDate
+    AND c.id = :courseId
+    GROUP BY YEAR(b.createdAt), MONTH(b.createdAt)
+    ORDER BY YEAR(b.createdAt), MONTH(b.createdAt)
+    """)
+    List<MonthlyStudentEnrollmentDTO> findCourseStudentEnrollmentByMonth(
+            @Param("startDate") LocalDateTime startDate,
+            @Param("courseId") UUID courseId);
 }
