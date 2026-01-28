@@ -1,7 +1,9 @@
 package com.learnease.server.repository;
 
+import com.learnease.server.dto.course.ShowSectionsResDto;
 import com.learnease.server.model.Section;
 import com.learnease.server.model.enums.ContentStatus;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,4 +35,19 @@ public interface SectionRepository extends JpaRepository<Section, UUID> {
 
     Optional<Section> findByIdAndCourseId(UUID sectionId, UUID courseId);
 
+
+
+    @Query(
+            """
+                    select new com.learnease.server.dto.course.ShowSectionsResDto(
+                    s.id,
+                    s.sectionNumber,
+                    s.title,
+                    s.description
+                    ) from Section s
+                    where s.course.id = :courseId
+                    ORDER BY s.sectionNumber
+                    """
+    )
+    List<ShowSectionsResDto> getAllSections(@Param("courseId") UUID courseId);
 }
