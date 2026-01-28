@@ -4,6 +4,7 @@ import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.projection.course.DashboardCoursesProjection;
+import com.learnease.server.projection.instructorDashboard.CategoryCourseCountProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -97,6 +98,24 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             nativeQuery = true)
     List<DashboardCoursesProjection> findDashboardCoursesByCategoryId(
             @Param("categoryId") UUID categoryId
+    );
+
+    @Query(
+            value = """
+            SELECT 
+                cat.title AS category,
+                COUNT(c.course_id) AS courseCount
+            FROM course c
+            JOIN category cat 
+                ON c.category_id = cat.category_id
+            WHERE c.instructor_id = :instructorId
+            GROUP BY cat.title
+            ORDER BY courseCount DESC
+            """,
+            nativeQuery = true
+    )
+    List<CategoryCourseCountProjection> findCourseCountByCategory(
+            @Param("instructorId") UUID instructorId
     );
 
 
