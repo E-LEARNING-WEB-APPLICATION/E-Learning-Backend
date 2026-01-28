@@ -28,10 +28,10 @@ public class NotificationController {
     @PageableAsQueryParam
     public Page<NotificationResponseDTO> getUserNotifications(
             @AuthenticationPrincipal JWTDTO dto,
-            @RequestParam(required = false) Boolean isRead,
+            @RequestParam(required = false) Boolean includeRead,
             @RequestParam(required = false) Pageable pageable
     ) {
-        if (isRead != null && !isRead) {
+        if (includeRead == null || !includeRead) {
             return notificationService.getUserUnreadNotification(dto.getUserId(), pageable);
 
         } else {
@@ -48,7 +48,7 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotificationByIdAndUserId(notificationId, jwtdto.getUserId()));
     }
 
-    @PatchMapping("/{notificationId}")
+    @PatchMapping("/{notificationId}/read")
     public ResponseEntity<ApiResponse> markNotificationRead(
             @AuthenticationPrincipal JWTDTO jwtdto,
             @PathVariable UUID notificationId
