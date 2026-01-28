@@ -15,17 +15,13 @@ import com.learnease.server.util.mappers.BookingMapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -212,9 +208,8 @@ public class BookingServiceImpl implements BookingService {
                         "Booking not found"
                 ));
 
-    /* ---------------------------------
-        Idempotency guard
-       --------------------------------- */
+       //----------- Idempotency check
+
         if (booking.getStatus() == BookingStatus.PAID) {
             return; // already verified, safe no-op
         }
@@ -293,20 +288,12 @@ public class BookingServiceImpl implements BookingService {
             String razorpaySignature
     ) {
         try {
-            String payload = orderId + "|" + paymentId;
+            JSONObject options = new JSONObject();
+            options.put("razorpay_order_id", orderId);
+            options.put("razorpay_payment_id", paymentId);
+            options.put("razorpay_signature", razorpaySignature);
 
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(
-                    razorpaySecret.getBytes(StandardCharsets.UTF_8),
-                    "HmacSHA256"
-            );
-            mac.init(secretKey);
-
-            byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-            String generatedSignature = Hex.encodeHexString(hash);
-
-            return generatedSignature.equals(razorpaySignature);
-
+            return Utils.verifyPaymentSignature(options, razorpaySecret);
         } catch (Exception e) {
             return false;
         }
