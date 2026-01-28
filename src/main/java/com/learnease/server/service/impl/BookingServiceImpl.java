@@ -15,17 +15,13 @@ import com.learnease.server.util.mappers.BookingMapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import com.razorpay.Utils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,161 +42,48 @@ public class BookingServiceImpl implements BookingService {
     @Value("${razorpay.key-secret}")
     private String razorpaySecret;
 
+    // ========================
+    // CREATE BOOKING
+    // =======================
 
     @Override
     public CreateBookingResponseDto createBooking(
-            CreateBookingRequestDto request, UUID authId
+            CreateBookingRequestDto request,
+            UUID authId
     ) {
 
-//        -----------Resolved Authenticated User ----------
+        UserAuth userAuth = resolveActiveStudent(authId);
+        Student student = resolveStudent(authId);
+        Course course = resolveCourse(request.getCourseId());
+        Instructor instructor = resolveInstructor(request.getInstructorId());
 
-        //we need to find that user exist or not
-        UserAuth userAuth = authRepository.findById(authId)
-                .orElseThrow(()-> new BookingException(
-                        BookingErrorCode.USER_NOT_FOUND,
-                        "Authenticated user not found"
-                ));
-        //check for the user's role only student allowed
-        if(userAuth.getRole() != Role.STUDENT){
-            throw new BookingException(
-                    BookingErrorCode.USER_NOT_STUDENT,
-                    "Only students can create bookings"
+        validateCourseInstructor(course, instructor);
+
+        Optional<Booking> reusableBooking =
+                handleExistingBooking(student, course);
+
+        if (reusableBooking.isPresent()) {
+            return bookingMapper.toCreateBookingResponse(
+                    reusableBooking.get()
             );
         }
 
-        //checking status
-        if(userAuth.getStatus() != Status.ACTIVE){
-            throw new BookingException(
-                    BookingErrorCode.USER_NOT_ACTIVE,
-                    "Inactive users cannot create bookings"
-            );
-        }
+        Booking booking = createPendingBooking(
+                student,
+                course,
+                instructor
+        );
 
-        Student student = studentRepository.findByUserDetails_UserAuth_Id(authId)
-                .orElseThrow(()-> new BookingException(
-                        BookingErrorCode.STUDENT_PROFILE_NOT_FOUND,
-                        "Student profile not found"
-                ));
-
-//        ---------- Load Course -----------
-
-        Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(()-> new BookingException(
-                        BookingErrorCode.COURSE_NOT_FOUND,
-                        "Course not found"
-                ));
-
-//        ----------- Load Instructor -----------
-        Instructor instructor = instructorRepository.findById(request.getInstructorId())
-                .orElseThrow(()-> new BookingException(
-                        BookingErrorCode.INSTRUCTOR_NOT_FOUND,
-                        "Instructor not found"
-                ));
-
-//        ------------- Validate Course-Instructor relationship -----------
-
-        if(!course.getInstructor().getId().equals(instructor.getId())){
-            throw new BookingException(
-                    BookingErrorCode.INSTRUCTOR_NOT_ALLOWED,
-                    "Instructor is not associated with this course"
-            );
-        };
-
-//        ------------------ Booking idempotency Check --------------
-
-        Optional<Booking> existingBookingOpt = bookingRepository
-                .findByStudentAndPurchasedCourse(student , course);
-
-        if(existingBookingOpt.isPresent()) {
-            Booking existingBooking = existingBookingOpt.get();
-
-            //Already Paid -- Hard Stop
-            if(existingBooking.getStatus() == BookingStatus.PAID){
-                throw new BookingException(
-                        BookingErrorCode.BOOKING_ALREADY_PAID,
-                        "Course already purchased"
-                );
-            }
-
-            //Booking is pending but not expired -- reuse
-            if(existingBooking.getStatus() == BookingStatus.PENDING &&
-                    existingBooking.getExpiresAt().isAfter(LocalDateTime.now()) &&
-                    existingBooking.getRazorpayOrderId() != null
-            ){
-
-                // We will reuse this booking later
-                return bookingMapper.toCreateBookingResponse(existingBooking);
-            }
-
-            if(existingBooking.getStatus() == BookingStatus.PENDING &&
-                    existingBooking.getExpiresAt().isBefore(LocalDateTime.now())){
-                existingBooking.setStatus(BookingStatus.EXPIRED);
-                bookingRepository.save(existingBooking);
-            }
-        }
-
-        BigDecimal courseFees = BigDecimal.valueOf(course.getFees());
-
-        BigDecimal discountPercentage = BigDecimal.valueOf(course.getDiscount())
-                .divide(BigDecimal.valueOf(100));
-
-        BigDecimal discountAmount =
-                courseFees.multiply(discountPercentage);
-
-        BigDecimal finalPrice =
-                courseFees.subtract(discountAmount);
-
-        LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(15);
-
-        Booking booking = new Booking();
-
-        booking.setStudent(student);
-        booking.setPurchasedCourse(course);
-        booking.setInstructor(instructor);
-
-        booking.setCoursePriceSnapShot(courseFees);
-        booking.setPricePaid(finalPrice);
-        booking.setCurrency("INR");
-
-        booking.setStatus(BookingStatus.PENDING);
-        booking.setExpiresAt(expiresAt);
-
-        booking = bookingRepository.save(booking);
-
-        long amountInPaise = booking
-                .getPricePaid()
-                .multiply(BigDecimal.valueOf(100))
-                .longValueExact();
-
-        // -----------------------------
-        //  Create Razorpay Order
-        // -----------------------------
-
-        JSONObject orderRequest = new JSONObject();
-        orderRequest.put("amount" , amountInPaise);
-        orderRequest.put("currency" , booking.getCurrency());
-        orderRequest.put("receipt" , booking.getId().toString());
-        orderRequest.put("payment_capture", 1);
-
-        Order razorPayOrder;
-        try {
-            razorPayOrder = razorpayClient.orders.create(orderRequest);
-        }catch (RazorpayException ex){
-            throw new BookingException(
-                    BookingErrorCode.PAYMENT_ORDER_CREATION_FAILED,
-                    "Failed to create payment order. Please try again."
-            );
-        };
-
-//        ------------- Link Razorpay Order to Booking ----------
-        booking.setRazorpayOrderId(razorPayOrder.get("id"));
-        bookingRepository.save(booking);
+        createAndAttachRazorpayOrder(booking);
 
         return bookingMapper.toCreateBookingResponse(booking);
     }
 
+    // ======================================================
+    // VERIFY PAYMENT
+    // ======================================================
+
     @Override
-    @Transactional
     public void verifyPayment(
             UUID bookingId,
             VerifyPaymentRequestDto request
@@ -212,11 +95,195 @@ public class BookingServiceImpl implements BookingService {
                         "Booking not found"
                 ));
 
-    /* ---------------------------------
-        Idempotency guard
-       --------------------------------- */
+        validateBookingStateForPayment(booking);
+        validateOrderId(booking, request.getRazorpayOrderId());
+        validateSignature(request);
+
+        markBookingAsPaid(booking, request.getRazorpayPaymentId());
+        enrollStudentIfNotAlready(booking);
+    }
+
+    // ================================
+    // AUTH / USER RESOLUTION
+    // ================================
+
+    private UserAuth resolveActiveStudent(UUID authId) {
+        UserAuth userAuth = authRepository.findById(authId)
+                .orElseThrow(() -> new BookingException(
+                        BookingErrorCode.USER_NOT_FOUND,
+                        "Authenticated user not found"
+                ));
+
+        if (userAuth.getRole() != Role.STUDENT) {
+            throw new BookingException(
+                    BookingErrorCode.USER_NOT_STUDENT,
+                    "Only students can create bookings"
+            );
+        }
+
+        if (userAuth.getStatus() != Status.ACTIVE) {
+            throw new BookingException(
+                    BookingErrorCode.USER_NOT_ACTIVE,
+                    "Inactive users cannot create bookings"
+            );
+        }
+
+        return userAuth;
+    }
+
+    private Student resolveStudent(UUID authId) {
+        return studentRepository
+                .findByUserDetails_UserAuth_Id(authId)
+                .orElseThrow(() -> new BookingException(
+                        BookingErrorCode.STUDENT_PROFILE_NOT_FOUND,
+                        "Student profile not found"
+                ));
+    }
+
+    // ============================
+    // COURSE / INSTRUCTOR
+    // ============================
+
+    private Course resolveCourse(UUID courseId) {
+        return courseRepository.findById(courseId)
+                .orElseThrow(() -> new BookingException(
+                        BookingErrorCode.COURSE_NOT_FOUND,
+                        "Course not found"
+                ));
+    }
+
+    private Instructor resolveInstructor(UUID instructorId) {
+        return instructorRepository.findById(instructorId)
+                .orElseThrow(() -> new BookingException(
+                        BookingErrorCode.INSTRUCTOR_NOT_FOUND,
+                        "Instructor not found"
+                ));
+    }
+
+    private void validateCourseInstructor(
+            Course course,
+            Instructor instructor
+    ) {
+        if (!course.getInstructor().getId().equals(instructor.getId())) {
+            throw new BookingException(
+                    BookingErrorCode.INSTRUCTOR_NOT_ALLOWED,
+                    "Instructor is not associated with this course"
+            );
+        }
+    }
+
+    // =============================
+    // BOOKING CREATION HELPERS
+    // =============================
+
+    private Optional<Booking> handleExistingBooking(
+            Student student,
+            Course course
+    ) {
+
+        Optional<Booking> existingOpt =
+                bookingRepository.findByStudentAndPurchasedCourse(
+                        student,
+                        course
+                );
+
+        if (existingOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Booking booking = existingOpt.get();
+
         if (booking.getStatus() == BookingStatus.PAID) {
-            return; // already verified, safe no-op
+            throw new BookingException(
+                    BookingErrorCode.BOOKING_ALREADY_PAID,
+                    "Course already purchased"
+            );
+        }
+
+        if (booking.getStatus() == BookingStatus.PENDING &&
+                booking.getExpiresAt().isAfter(LocalDateTime.now()) &&
+                booking.getRazorpayOrderId() != null) {
+
+            return Optional.of(booking);
+        }
+
+        if (booking.getStatus() == BookingStatus.PENDING &&
+                booking.getExpiresAt().isBefore(LocalDateTime.now())) {
+
+            booking.setStatus(BookingStatus.EXPIRED);
+            bookingRepository.save(booking);
+        }
+
+        return Optional.empty();
+    }
+
+    private Booking createPendingBooking(
+            Student student,
+            Course course,
+            Instructor instructor
+    ) {
+
+        BigDecimal courseFees = BigDecimal.valueOf(course.getFees());
+        BigDecimal discount =
+                BigDecimal.valueOf(course.getDiscount())
+                        .divide(BigDecimal.valueOf(100));
+
+        BigDecimal finalPrice =
+                courseFees.subtract(courseFees.multiply(discount));
+
+        Booking booking = new Booking();
+        booking.setStudent(student);
+        booking.setPurchasedCourse(course);
+        booking.setInstructor(instructor);
+        booking.setCoursePriceSnapShot(courseFees);
+        booking.setPricePaid(finalPrice);
+        booking.setCurrency("INR");
+        booking.setStatus(BookingStatus.PENDING);
+        booking.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+
+        return bookingRepository.save(booking);
+    }
+
+    private void createAndAttachRazorpayOrder(
+            Booking booking
+    ) {
+
+        long amountInPaise =
+                booking.getPricePaid()
+                        .multiply(BigDecimal.valueOf(100))
+                        .longValueExact();
+
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amountInPaise);
+        orderRequest.put("currency", booking.getCurrency());
+        orderRequest.put("receipt", booking.getId().toString());
+        orderRequest.put("payment_capture", 1);
+
+        try {
+            Order order =
+                    razorpayClient.orders.create(orderRequest);
+
+            booking.setRazorpayOrderId(order.get("id"));
+            bookingRepository.save(booking);
+
+        } catch (RazorpayException ex) {
+            throw new BookingException(
+                    BookingErrorCode.PAYMENT_ORDER_CREATION_FAILED,
+                    "Failed to create payment order. Please try again."
+            );
+        }
+    }
+
+    // ================================
+    // PAYMENT VERIFICATION HELPERS
+    // ================================
+
+    private void validateBookingStateForPayment(
+            Booking booking
+    ) {
+
+        if (booking.getStatus() == BookingStatus.PAID) {
+            return;
         }
 
         if (booking.getStatus() == BookingStatus.REJECTED) {
@@ -232,46 +299,52 @@ public class BookingServiceImpl implements BookingService {
                     "Booking is not in a payable state"
             );
         }
+    }
 
-
-         // Order ID validation
-        if (!booking.getRazorpayOrderId()
-                .equals(request.getRazorpayOrderId())) {
-
-            booking.setStatus(BookingStatus.REJECTED);
-            bookingRepository.save(booking);
-
-            throw new BookingException(
+    private void validateOrderId(
+            Booking booking,
+            String orderId
+    ) {
+        if (!booking.getRazorpayOrderId().equals(orderId)) {
+            rejectBooking(
+                    booking,
                     BookingErrorCode.ORDER_ID_MISMATCH,
                     "Razorpay order ID mismatch"
             );
         }
+    }
 
-        // Signature verification
-
-        boolean isValidSignature = verifyRazorpaySignature(
+    private void validateSignature(
+            VerifyPaymentRequestDto request
+    ) {
+        boolean valid = verifyRazorpaySignature(
                 request.getRazorpayOrderId(),
                 request.getRazorpayPaymentId(),
                 request.getRazorpaySignature()
         );
 
-        if (!isValidSignature) {
-
-            booking.setStatus(BookingStatus.REJECTED);
-            bookingRepository.save(booking);
-
-            throw new BookingException(
+        if (!valid) {
+            rejectBooking(
+                    null,
                     BookingErrorCode.INVALID_PAYMENT_SIGNATURE,
                     "Invalid Razorpay payment signature"
             );
         }
+    }
 
-        // SUCCESS — finalize payment
-
-        booking.setRazorpayPaymentId(request.getRazorpayPaymentId());
+    private void markBookingAsPaid(
+            Booking booking,
+            String paymentId
+    ) {
+        booking.setRazorpayPaymentId(paymentId);
         booking.setStatus(BookingStatus.PAID);
         booking.setPaidAt(LocalDateTime.now());
+        bookingRepository.save(booking);
+    }
 
+    private void enrollStudentIfNotAlready(
+            Booking booking
+    ) {
         Student student = booking.getStudent();
         Course course = booking.getPurchasedCourse();
 
@@ -281,11 +354,19 @@ public class BookingServiceImpl implements BookingService {
                     student.getTotalEnrolledCourses() + 1
             );
         }
-
-        bookingRepository.save(booking);
-        // student is managed — dirty checking will persist enrollment
     }
 
+    private void rejectBooking(
+            Booking booking,
+            BookingErrorCode errorCode,
+            String message
+    ) {
+        if (booking != null) {
+            booking.setStatus(BookingStatus.REJECTED);
+            bookingRepository.save(booking);
+        }
+        throw new BookingException(errorCode, message);
+    }
 
     private boolean verifyRazorpaySignature(
             String orderId,
@@ -293,23 +374,18 @@ public class BookingServiceImpl implements BookingService {
             String razorpaySignature
     ) {
         try {
-            String payload = orderId + "|" + paymentId;
+            JSONObject options = new JSONObject();
+            options.put("razorpay_order_id", orderId);
+            options.put("razorpay_payment_id", paymentId);
+            options.put("razorpay_signature", razorpaySignature);
 
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKey = new SecretKeySpec(
-                    razorpaySecret.getBytes(StandardCharsets.UTF_8),
-                    "HmacSHA256"
+            return Utils.verifyPaymentSignature(
+                    options,
+                    razorpaySecret
             );
-            mac.init(secretKey);
-
-            byte[] hash = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
-            String generatedSignature = Hex.encodeHexString(hash);
-
-            return generatedSignature.equals(razorpaySignature);
-
         } catch (Exception e) {
             return false;
         }
     }
-
 }
+
