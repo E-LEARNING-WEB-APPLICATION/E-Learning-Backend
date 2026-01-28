@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class BookingController {
             summary = "Create a booking for a course",
             description = "Creates a pending booking and generates a Razorpay order for payment"
     )
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping
     public ResponseEntity<?> createBooking(
             @RequestBody @Valid CreateBookingRequestDto request,
@@ -54,6 +56,7 @@ public class BookingController {
             summary = "Verify course payment",
             description = "Verifies Razorpay payment signature and enrolls the student after successful payment"
     )
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/{bookingId}/verify-payment")
     public ResponseEntity<Void> verifyPayment(
             @PathVariable UUID bookingId,
