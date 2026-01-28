@@ -1,13 +1,11 @@
 package com.learnease.server.service.impl;
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
-import com.learnease.server.model.Admin;
-import com.learnease.server.model.Instructor;
-import com.learnease.server.model.UserAuth;
-import com.learnease.server.model.UserDetails;
+import com.learnease.server.model.*;
 import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.repository.*;
@@ -41,6 +39,7 @@ public class AdminServiceImpl implements AdminService {
     private final CourseRepository courseRepository;
     private final StudentRepository studentRepository;
     private final BookingRepository bookingRepository;
+    private final CommissionConfigRepository commissionConfigRepository;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -149,5 +148,24 @@ public class AdminServiceImpl implements AdminService {
         );
 
         return bookingRepository.findEnrolledStudentsByCourse(courseId, pageable);
+    }
+
+    @Override
+    public ApiResponse addOrUpdateCommission(Double commission, UUID authId) {
+
+        Admin admin = adminRepository.findByUserDetailsUserAuthId(authId)
+                .orElseThrow(() -> new BadClientRequestException("Admin with id " + authId + " not found"));
+
+        CommissionConfig commissionConfig = commissionConfigRepository.findFirst()
+                .orElseGet(CommissionConfig::new);
+        //null safety if no commission exist in the table database
+
+        commissionConfig.setCommission(commission);
+        commissionConfig.setAdmin(admin);
+
+        commissionConfigRepository.save(commissionConfig);
+
+        return new ApiResponse(true,"Commission has been updated");
+
     }
 }

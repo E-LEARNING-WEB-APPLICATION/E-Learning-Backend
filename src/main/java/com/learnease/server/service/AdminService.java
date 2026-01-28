@@ -1,5 +1,6 @@
 package com.learnease.server.service;
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
@@ -29,4 +30,6 @@ public interface AdminService {
             int page,
             int size
     );
+
+    ApiResponse addOrUpdateCommission(Double commission, UUID authId);
 }
