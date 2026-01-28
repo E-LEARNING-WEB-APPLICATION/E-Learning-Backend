@@ -15,6 +15,7 @@ import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.NotificationService;
 import com.learnease.server.service.NotificationSseService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
@@ -106,9 +108,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Transactional
     @Override
     public void updateNotificationRead(UUID userId, UUID notificationId) {
-        NotificationRecipient nr = notificationRecipientRepository.findById(notificationId)
+        NotificationRecipient nr = notificationRecipientRepository.findByNotificationIdAndRecipientId(notificationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("notification not found"));
-        if (nr.getRecipient().getId() != userId) throw new BadClientRequestException("Invalid access to notification");
+        if (!nr.getRecipient().getId().equals(userId)) throw new BadClientRequestException("Invalid access to notification");
         nr.setRead(true);
         nr.setReadAt(LocalDateTime.now());
         notificationRecipientRepository.save(nr);
@@ -139,7 +141,7 @@ public class NotificationServiceImpl implements NotificationService {
     public long getNotificationCount(UUID userAuthId, Boolean includeRead) {
         UserAuth user = userAuthRepository.findById(userAuthId)
                 .orElseThrow(() -> new UserNotFoundException("user not found with given Id"));
-        if (includeRead != null && !includeRead) {
+        if (includeRead == null || !includeRead) {
             return notificationRecipientRepository.countAllByRecipientAndIsRead(user, false);
         } else {
             return notificationRecipientRepository.countAllByRecipient(user);
