@@ -12,7 +12,8 @@ public interface InstructorRepository extends JpaRepository<Instructor , UUID> {
 
 
     Optional<Instructor> findByUserDetails_Id(UUID userId);
+    Optional<Instructor> findByUserDetails_UserAuth_Id(UUID authId);
 
-    public List<Instructor> findInstructorByUserDetailsUserAuthStatus(Status status);
-    public long countAllByUserDetailsUserAuthStatus(Status status);
+    List<Instructor> findInstructorByUserDetailsUserAuthStatus(Status status);
+    long countAllByUserDetailsUserAuthStatus(Status status);
 }

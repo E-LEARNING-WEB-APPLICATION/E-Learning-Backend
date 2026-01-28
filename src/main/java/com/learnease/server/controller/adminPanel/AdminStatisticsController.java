@@ -73,17 +73,17 @@ public class AdminStatisticsController {
     }
 
     @GetMapping("/instructors/revenue")
-    public ResponseEntity<List<InstructorMonthlyRevenueDTO>> getTopInstructorsByRevenue(@RequestParam int top){
+    public ResponseEntity<List<InstructorMonthlyRevenueDTO>> getTopInstructorsByRevenue(@RequestParam(required = false, defaultValue = "10") int top){
         return ResponseEntity.ok(instructorStatisticsService.getTopInstructorByMonthlyRevenue(top));
     }
 
     @GetMapping("/instructors/enrollments")
-    public ResponseEntity<List<InstructorEnrollmentsDTO>> getTopInstructorsByEnrollments(@RequestParam int top){
+    public ResponseEntity<List<InstructorEnrollmentsDTO>> getTopInstructorsByEnrollments(@RequestParam(required = false, defaultValue = "10") int top){
         return ResponseEntity.ok(instructorStatisticsService.getTopInstructorByEnrollments(top));
     }
 
     @GetMapping("/course/enrollments")
-    public ResponseEntity<List<CourseEnrollmentDTO>> getTopCoursesByEnrollments(@RequestParam int top){
+    public ResponseEntity<List<CourseEnrollmentDTO>> getTopCoursesByEnrollments(@RequestParam(required = false, defaultValue = "10") int top){
         return ResponseEntity.ok(courseStatisticsService.getTopCoursesByEnrollments(top));
     }
 
@@ -111,7 +111,7 @@ public class AdminStatisticsController {
 
     @GetMapping("/course/by-rating")
     public ResponseEntity<List<CourseRatingDTO>> getTopCourseRatings(
-            @RequestParam int top
+            @RequestParam(required = false, defaultValue = "10") int top
     ){
         return ResponseEntity.ok(courseAnalyticsService.getTopCourseRatings(top));
     }

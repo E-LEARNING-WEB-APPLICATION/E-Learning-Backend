@@ -12,6 +12,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+//for the student dashboard
 public class DashboardInstructorResponseDto {
     private UUID id;
     private String name;
@@ -24,13 +25,5 @@ public class DashboardInstructorResponseDto {
     private String gitHub;
     private String linkedIn;
     private String twitter;
-//    id
-//    name(first and last name)
-//    title(bio)
-//    speciality(specialization)
-//    no of course
-//    no of students
-//    image(profilepic)
-//    email
-//    social{ linkdin,github , twitter}
+
 }
