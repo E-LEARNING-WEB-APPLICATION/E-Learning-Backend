@@ -5,6 +5,7 @@ import com.learnease.server.dto.auth.InstructorRegisterRequestDto;
 import com.learnease.server.dto.auth.LoginRequestDto;
 import com.learnease.server.dto.auth.LoginResponseDto;
 import com.learnease.server.dto.auth.StudentRegisterRequestDto;
+import com.learnease.server.dto.notification.EmailEvent;
 import com.learnease.server.dto.notification.SendNotificationDTO;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
 import com.learnease.server.model.Instructor;
@@ -12,14 +13,17 @@ import com.learnease.server.model.Student;
 import com.learnease.server.model.UserAuth;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.*;
+import com.learnease.server.repository.AdminRepository;
 import com.learnease.server.repository.InstructorRepository;
 import com.learnease.server.repository.StudentRepository;
 import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.AuthService;
+import com.learnease.server.service.EmailService;
 import com.learnease.server.service.NotificationService;
 import com.learnease.server.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,6 +31,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +46,7 @@ public class AuthServiceImpl implements AuthService {
     private final NotificationService notificationService;
     private final AuthenticationManager authenticationManager; //for the Managers authenticate method
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
 
     @Override
@@ -110,10 +117,30 @@ public class AuthServiceImpl implements AuthService {
                         .build()
         );
 
+        //send Email to admin
+        emailService.sendEmail(
+                EmailEvent.builder()
+                        .eventType(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
+//                        .to(userAuthRepository.findEmailByRoleAndStatusActive(Role.ADMIN, Status.ACTIVE))
+                        .to(List.of("gandhioms16@gmail.com"))
+                        .subject("New Instructor Registered")
+                        .data(Map.of(
+                                "firstName",
+                                instructor.getUserDetails().getFirstName(),
+                                "lastName", instructor.getUserDetails().getLastName(),
+                                "email", instructor.getUserDetails().getUserAuth().getEmail(),
+                                "phoneNo", instructor.getUserDetails().getPhoneNo(),
+                                "experience", instructor.getExperience()
+                        ))
+                        .meta(Map.of())
+                        .build()
+        );
+
+
         return new ApiResponse(true, "Instructor Registered Successfully.");
     }
 
-    public LoginResponseDto login(LoginRequestDto requestDto){
+    public LoginResponseDto login(LoginRequestDto requestDto) {
               /*
             1.Invoke AuthenticationManager's authenticate method
             public Authentication authenticate(Authentication auth)
@@ -126,7 +153,7 @@ public class AuthServiceImpl implements AuthService {
 
         Authentication fullyAuthenticated = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        requestDto.getEmail() , requestDto.getPassword()
+                        requestDto.getEmail(), requestDto.getPassword()
                 ));
         UserAuth userAuth = (UserAuth) fullyAuthenticated.getPrincipal();
         userAuth.setLastLoginAt(LocalDateTime.now());
