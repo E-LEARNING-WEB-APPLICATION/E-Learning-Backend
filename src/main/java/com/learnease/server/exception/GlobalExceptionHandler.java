@@ -4,6 +4,7 @@ package com.learnease.server.exception;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.exception.custom_exception.*;
 import com.learnease.server.model.enums.BookingErrorCode;
+import com.learnease.server.model.enums.OtpErrorCode;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -112,6 +113,31 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ApiResponse(false, ex.getMessage()));
     }
+
+    @ExceptionHandler(OtpException.class)
+    public ResponseEntity<?> handleOtpException(OtpException ex) {
+
+        HttpStatus status = mapOtpErrorToHttpStatus(ex.getErrorCode());
+
+        return ResponseEntity
+                .status(status)
+                .body(new ApiResponse(false, ex.getMessage()));
+    };
+
+    private HttpStatus mapOtpErrorToHttpStatus(OtpErrorCode errorCode) {
+
+        return switch (errorCode) {
+
+            case OTP_NOT_FOUND -> HttpStatus.BAD_REQUEST;
+            case OTP_EXPIRED -> HttpStatus.GONE;
+            case OTP_INVALID -> HttpStatus.BAD_REQUEST;
+            case OTP_ATTEMPTS_EXCEEDED -> HttpStatus.TOO_MANY_REQUESTS;
+
+            default -> HttpStatus.INTERNAL_SERVER_ERROR;
+        };
+    }
+
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleGenericException(Exception ex){

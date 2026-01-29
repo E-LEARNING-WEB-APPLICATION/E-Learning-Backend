@@ -578,3 +578,57 @@ List<Object[]> debugNativeQuery(@Param("status") String status, @Param("sortBy")
         }
     }
 ```
+
+## Issue 009: OTP attempt count not incrementing on invalid OTP
+
+### Problem
+While validating OTPs, the `attempt_count` column in the `otp_verification` table
+was not incrementing when an incorrect OTP was entered, even though the
+increment logic and repository save operation were executed.
+
+---
+
+### Cause
+OTP validation was executed inside an **outer transactional method**
+(`resetPasswordWithOtp`).  
+Although `@Transactional(noRollbackFor = OtpException.class)` was applied on the
+OTP validation method, the thrown `OtpException` propagated to the outer
+transaction, causing the **entire transaction to roll back**.
+
+As a result, the OTP attempt count update was undone and never committed to the
+database.
+
+---
+
+### Solution
+OTP validation was executed in a **separate transaction** using
+`Propagation.REQUIRES_NEW`, ensuring that OTP attempt count updates are committed
+independently of the outer business transaction.
+
+```java
+@Transactional(
+    propagation = Propagation.REQUIRES_NEW,
+    noRollbackFor = OtpException.class
+)
+@Override
+public void validateOtp(UUID userId, OtpPurpose purpose, String otp) {
+
+    OtpVerification otpEntity = otpRepository
+        .findByUserIdAndPurposeAndConsumedAtIsNullAndExpiresAtAfter(
+            userId, purpose, LocalDateTime.now()
+        )
+        .orElseThrow(() ->
+            new OtpException(OtpErrorCode.OTP_NOT_FOUND)
+        );
+
+    if (otpEntity.getAttemptCount() >= MAX_ATTEMPTS) {
+        throw new OtpException(OtpErrorCode.OTP_ATTEMPTS_EXCEEDED);
+    }
+
+    if (!passwordEncoder.matches(otp, otpEntity.getOtpHash())) {
+        otpEntity.setAttemptCount(otpEntity.getAttemptCount() + 1);
+        otpRepository.save(otpEntity);
+        throw new OtpException(OtpErrorCode.OTP_INVALID);
+    }
+}
+```
