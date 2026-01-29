@@ -17,7 +17,7 @@ public class SectionDto {
     private UUID sId;
     private String sectionName;
     private String sectionDesc;
+    private int sectionNumber;
     private LocalDateTime createdAt;
-
     private List<TopicDto> topics;
 }
