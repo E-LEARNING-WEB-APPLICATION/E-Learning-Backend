@@ -4,6 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.course.AddTopicReqDto;
 import com.learnease.server.dto.course.AddTopicRequestDto;
 import com.learnease.server.dto.course.TopicResponseDto;
+import com.learnease.server.dto.course.UpdateTopicReqDto;
 import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.Instructor;
@@ -85,6 +86,47 @@ public class TopicServiceImpl implements TopicService {
 
         topic.setStatus(ContentStatus.DELETED);
     }
+
+    @Transactional
+    public ApiResponse updateTopic(UUID userId, UpdateTopicReqDto reqDto, String videoUrl)
+    {
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Topic topic = topicRepository
+                .findById(reqDto.getTopicId())
+                .orElseThrow(() -> new ResourceNotFoundException("Topic Not Found"));
+
+        Section section = topic.getSection();
+
+        if (!section.getCourse().getInstructor().getId()
+                .equals(instructor.getId())) {
+            throw new AuthorizationDeniedException(
+                    "Can't update topic which does not belong to you"
+            );
+        }
+        topic.setTitle(reqDto.getTopicName());
+        topic.setTopicNumber(reqDto.getTopicNumber());
+        topic.setDescription(reqDto.getTopicDesc());
+        topic.setHour(reqDto.getHour());
+        topic.setMin(reqDto.getMin());
+        topic.setNotes("notes");
+
+        if (videoUrl != null) {
+            topic.setVideo(videoUrl);
+        }
+
+        topicRepository.save(topic);
+
+        return new ApiResponse(true, "Topic updated successfully");
+    }
+
 
 
     @Transactional

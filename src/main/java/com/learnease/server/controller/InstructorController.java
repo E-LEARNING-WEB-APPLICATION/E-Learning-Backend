@@ -5,10 +5,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.course.AddSectionReqDto;
-import com.learnease.server.dto.course.AddTopicReqDto;
-import com.learnease.server.dto.course.ShowSectionsResDto;
-import com.learnease.server.dto.course.TopicResponseDto;
+import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.model.Course;
 import com.learnease.server.service.InstructorService;
@@ -64,6 +61,44 @@ public class InstructorController {
 
     }
 
+    @PutMapping(
+            value = "updateCourse/{courseId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> updateCourse(
+            @PathVariable UUID courseId,
+            @RequestParam String courseName,
+            @RequestParam String courseDesc,
+            @RequestParam double fees,
+            @RequestParam int discountPercentage,
+            @RequestParam int hour,
+            @RequestParam UUID categoryId,
+            @RequestParam(required = false) MultipartFile image,
+            @RequestParam(required = false) MultipartFile video,
+            @AuthenticationPrincipal JWTDTO user
+    ) {
+        ApiResponse response = instructorService.updateCourse(
+                courseId,
+                courseName,
+                courseDesc,
+                fees,
+                discountPercentage,
+                hour,
+                categoryId,
+                image,
+                video,
+                user
+        );
+
+        if (response.isSuccess()) {
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.badRequest().body(response);
+    }
+
+
     @PreAuthorize("hasRole('INSTRUCTOR')")
     @SecurityRequirement(name = "bearerAuth")
     @GetMapping("/getAllInstructorCourses")
@@ -109,6 +144,21 @@ public class InstructorController {
 
     @PreAuthorize("hasRole('INSTRUCTOR')")
     @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("updateSection/{sectionId}")
+    public ResponseEntity<ApiResponse> updateSection(
+            @PathVariable UUID sectionId,
+            @AuthenticationPrincipal JWTDTO jwtdto,
+            @RequestBody AddSectionReqDto addSectionReqDto
+    ) {
+        ApiResponse response =
+                instructorService.updateSection(jwtdto.getUserId(), sectionId, addSectionReqDto);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
     @GetMapping("getCourseSections/{courseId}")
     public ResponseEntity<List<ShowSectionsResDto>> getCourseSections(@AuthenticationPrincipal JWTDTO jwtdto, @PathVariable UUID courseId)
     {
@@ -135,5 +185,41 @@ public class InstructorController {
         return ResponseEntity.status(200).body(response);
     }
 
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping(
+            value = "updateTopic",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<ApiResponse> updateTopic(
+            @AuthenticationPrincipal JWTDTO jwtdto,
+            @ModelAttribute UpdateTopicReqDto updateTopicReqDto
+    ) {
+        ApiResponse response =
+                instructorService.updateTopic(jwtdto.getUserId(), updateTopicReqDto);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("getSection/{sectionId}")
+    public ResponseEntity<SectionDto> getSectionDetails(@PathVariable UUID sectionId, @AuthenticationPrincipal JWTDTO jwtdto)
+    {
+       SectionDto section = instructorService.getSection(sectionId);
+        return ResponseEntity.status(200).body(section);
+    }
+
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("getTopic/{topicId}")
+    public ResponseEntity<TopicResponseDto> getTopicDetails(@PathVariable UUID topicId, @AuthenticationPrincipal JWTDTO jwtdto)
+    {
+        TopicResponseDto topic = instructorService.getTopic(topicId);
+        return ResponseEntity.status(200).body(topic);
+    }
 
 }

@@ -4,10 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.course.AddSectionReqDto;
-import com.learnease.server.dto.course.AddTopicReqDto;
-import com.learnease.server.dto.course.ShowSectionsResDto;
-import com.learnease.server.dto.course.TopicResponseDto;
+import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,5 +30,16 @@ public interface InstructorService {
 
     ApiResponse addTopic(UUID userId, AddTopicReqDto addTopicReqDto);
 
+    ApiResponse updateTopic(UUID userId, UpdateTopicReqDto updateTopicReqDto);
+
+
     List<TopicResponseDto> getTopics(UUID sectionId, UUID userId);
+
+    ApiResponse updateCourse(UUID courseId, String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user);
+
+    SectionDto getSection(UUID sectionId);
+
+    ApiResponse updateSection(UUID userId, UUID sectionId, AddSectionReqDto addSectionReqDto);
+
+    TopicResponseDto getTopic(UUID topicId);
 }
