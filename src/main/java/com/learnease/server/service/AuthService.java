@@ -12,4 +12,10 @@ public interface AuthService {
 
     ApiResponse registerInstructor(InstructorRegisterRequestDto request);
     LoginResponseDto login(LoginRequestDto dto);
+    ApiResponse<String> requestPasswordResetOtp(String email);
+    ApiResponse<String> resetPasswordWithOtp(
+            String email,
+            String otp,
+            String newPassword
+    );
 }
