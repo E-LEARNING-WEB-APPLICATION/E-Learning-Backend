@@ -35,6 +35,26 @@ example:
 }
 
 ```
+
+sending email using email client
+```java
+emailClient.sendEmail(
+        EmailEventRequest.builder()
+        .eventType(NotificationType.COURSE_PURCHASED)
+        .to(List.of(student.getEmail()))
+        .subject("Course Purchased Successfully")
+        .data(Map.of(
+        "studentName", student.getFirstName(),
+            "courseTitle", course.getTitle(),
+            "pricePaid", booking.getPricePaid(),
+            "currency", booking.getCurrency(),
+            "purchaseTime", booking.getPurchaseTime(),
+            "bookingId", booking.getId()
+        ))
+                .build()
+);
+
+```
 #### Event Types
 for data field for different events\
 create java map `Map<String, Object> ` with following fields
