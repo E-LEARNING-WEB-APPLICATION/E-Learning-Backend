@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
-    public ApiResponse registerStudent(StudentRegisterRequestDto requestDto) {
+    public ApiResponse<String> registerStudent(StudentRegisterRequestDto requestDto) {
 
         if (userAuthRepository.existsByEmail(requestDto.getEmail())) {
             throw new EmailAlreadyExistsException("Email already registered");
@@ -75,11 +75,11 @@ public class AuthServiceImpl implements AuthService {
 
         studentRepository.save(student);
 
-        return new ApiResponse(true, "Student Registered Successfully.");
+        return new ApiResponse<>(true, "Student Registered Successfully.");
     }
 
     @Override
-    public ApiResponse registerInstructor(InstructorRegisterRequestDto request) {
+    public ApiResponse<String> registerInstructor(InstructorRegisterRequestDto request) {
         if (userAuthRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("Email already registered");
         }
@@ -137,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
 
-        return new ApiResponse(true, "Instructor Registered Successfully.");
+        return new ApiResponse<>(true, "Instructor Registered Successfully.");
     }
 
     public LoginResponseDto login(LoginRequestDto requestDto) {
