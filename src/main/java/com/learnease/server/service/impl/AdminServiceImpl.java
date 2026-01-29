@@ -1,13 +1,13 @@
 package com.learnease.server.service.impl;
 
+import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.InstructorResponseDto;
 import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
+import com.learnease.server.dto.auth.AdminUpdateProfileRequest;
+import com.learnease.server.dto.auth.PasswordUpdateDto;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
-import com.learnease.server.model.Admin;
-import com.learnease.server.model.Instructor;
-import com.learnease.server.model.UserAuth;
-import com.learnease.server.model.UserDetails;
+import com.learnease.server.model.*;
 import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.repository.*;
@@ -20,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +42,7 @@ public class AdminServiceImpl implements AdminService {
     private final CourseRepository courseRepository;
     private final StudentRepository studentRepository;
     private final BookingRepository bookingRepository;
+    private final CommissionConfigRepository commissionConfigRepository;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -70,6 +72,38 @@ public class AdminServiceImpl implements AdminService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    @Override
+    public Admin updateAdminProfile(UUID adminUserAuthId, AdminUpdateProfileRequest newUser, MultipartFile profilePic) {
+        try {
+            Admin admin  = adminRepository.findByUserDetailsUserAuthId(adminUserAuthId)
+                    .orElseThrow(()-> new BadClientRequestException("Admin Id not valid"));
+            admin.getUserDetails()
+                    .setFirstName(newUser.firstName())
+                    .setLastName(newUser.lastName())
+                    .setDob(newUser.dob())
+                    .setGender(newUser.gender())
+                    .setPhoneNo(newUser.phoneNo())
+                    .setProfilePic(s3Service.uploadFile(profilePic, "profile_pictures"))
+                    .setAddress(addressMapper.toEntity(newUser.address()));
+
+            return adminRepository.save(admin);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void updatePassword(UUID adminId, PasswordUpdateDto dto) {
+        Admin admin  = adminRepository.findByUserDetailsUserAuthId(adminId)
+                .orElseThrow(()-> new BadClientRequestException("Admin Id not valid"));
+        if(!passwordEncoder.matches(dto.oldPassword(), admin.getUserDetails().getUserAuth().getPassword()))
+            throw new BadCredentialsException("Incorrect password");
+        admin.getUserDetails().getUserAuth().setPassword(passwordEncoder.encode(dto.newPassword()));
+        adminRepository.save(admin);
     }
 
     @Override
@@ -149,5 +183,24 @@ public class AdminServiceImpl implements AdminService {
         );
 
         return bookingRepository.findEnrolledStudentsByCourse(courseId, pageable);
+    }
+
+    @Override
+    public ApiResponse addOrUpdateCommission(Double commission, UUID authId) {
+
+        Admin admin = adminRepository.findByUserDetailsUserAuthId(authId)
+                .orElseThrow(() -> new BadClientRequestException("Admin with id " + authId + " not found"));
+
+        CommissionConfig commissionConfig = commissionConfigRepository.findFirst()
+                .orElseGet(CommissionConfig::new);
+        //null safety if no commission exist in the table database
+
+        commissionConfig.setCommission(commission);
+        commissionConfig.setAdmin(admin);
+
+        commissionConfigRepository.save(commissionConfig);
+
+        return new ApiResponse(true,"Commission has been updated");
+
     }
 }

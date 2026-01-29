@@ -17,4 +17,5 @@ public interface UserAuthRepository extends JpaRepository<UserAuth , UUID> {
 
     List<UserAuth> findByRole(Role role);
     UserAuth findByEmailAndStatusAndRole(String email, Status status, Role role);
+    List<String> findEmailByRoleAndStatus(Role role, Status status);
 }

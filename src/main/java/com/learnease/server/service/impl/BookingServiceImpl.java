@@ -4,11 +4,9 @@ import com.learnease.server.dto.booking.CreateBookingRequestDto;
 import com.learnease.server.dto.booking.CreateBookingResponseDto;
 import com.learnease.server.dto.booking.VerifyPaymentRequestDto;
 import com.learnease.server.exception.custom_exception.BookingException;
+import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.*;
-import com.learnease.server.model.enums.BookingErrorCode;
-import com.learnease.server.model.enums.BookingStatus;
-import com.learnease.server.model.enums.Role;
-import com.learnease.server.model.enums.Status;
+import com.learnease.server.model.enums.*;
 import com.learnease.server.repository.*;
 import com.learnease.server.service.BookingService;
 import com.learnease.server.util.mappers.BookingMapper;
@@ -38,6 +36,8 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final RazorpayClient razorpayClient;
     private final BookingMapper bookingMapper;
+    private final WalletTransactionRepository walletTransactionRepository;
+    private final CommissionConfigRepository  commissionConfigRepository;
 
     @Value("${razorpay.key-secret}")
     private String razorpaySecret;
@@ -340,6 +340,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setStatus(BookingStatus.PAID);
         booking.setPaidAt(LocalDateTime.now());
         bookingRepository.save(booking);
+        createForPaidBooking(booking);
     }
 
     private void enrollStudentIfNotAlready(
@@ -387,5 +388,32 @@ public class BookingServiceImpl implements BookingService {
             return false;
         }
     }
+
+    public void createForPaidBooking(Booking booking) {
+
+        // Safety: prevent duplicate wallet entry
+        if (walletTransactionRepository.existsByBooking(booking)) {
+            return;
+        }
+
+        CommissionConfig commissionConfig = commissionConfigRepository.findFirst()
+                .orElseGet(CommissionConfig::new);
+
+        double companyPct = commissionConfig.getCommission();
+
+        BigDecimal instructorAmount =
+                booking.getPricePaid()
+                        .multiply(BigDecimal.valueOf(100 - companyPct))
+                        .divide(BigDecimal.valueOf(100));
+
+        WalletTransaction tx = new WalletTransaction();
+        tx.setBooking(booking);
+        tx.setInstructor(booking.getInstructor());
+        tx.setAmount(instructorAmount);
+        tx.setPayoutStatus(PayoutStatus.AVAILABLE);
+
+        walletTransactionRepository.save(tx);
+    }
+
 }
 

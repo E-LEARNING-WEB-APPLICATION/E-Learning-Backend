@@ -10,8 +10,10 @@ import com.learnease.server.service.InstructorStatisticsService;
 import com.learnease.server.util.enums.InstructorSortBy;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +73,15 @@ public class AdminInstructorController {
             @RequestParam(defaultValue = "10") int limit
     ) {
         return instructorStatisticsService.getTopInstructors(sortBy, limit);
+    }
+
+    @PutMapping("/UpdateCommission")
+    public ResponseEntity<?> updateCommission(@RequestParam Double commission, Authentication authentication){
+
+        JWTDTO jwtdto = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwtdto.getUserId();
+        ApiResponse response = adminService.addOrUpdateCommission(commission,authId);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(response);
     }
 
 }
