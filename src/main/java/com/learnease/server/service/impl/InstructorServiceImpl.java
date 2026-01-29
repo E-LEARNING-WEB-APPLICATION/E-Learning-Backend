@@ -4,10 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
-import com.learnease.server.dto.course.AddSectionReqDto;
-import com.learnease.server.dto.course.AddTopicReqDto;
-import com.learnease.server.dto.course.ShowSectionsResDto;
-import com.learnease.server.dto.course.TopicResponseDto;
+import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
@@ -83,6 +80,8 @@ public class InstructorServiceImpl implements InstructorService {
 
 
     }
+
+
 
     @Override
     public List<CoursesDto> getAllCourses(JWTDTO user) {
@@ -168,6 +167,25 @@ public class InstructorServiceImpl implements InstructorService {
     }
 
     @Override
+    public ApiResponse updateTopic(UUID userId, UpdateTopicReqDto reqDto) {
+
+        String videoUrl = null;
+
+        if (reqDto.getVideo() != null && !reqDto.getVideo().isEmpty()) {
+            try {
+                videoUrl = s3Service.uploadFile(
+                        reqDto.getVideo(), "topics/videos"
+                );
+            } catch (IOException e) {
+                throw new FileStorageException("Failed to upload video", e);
+            }
+        }
+
+        return topicService.updateTopic(userId, reqDto, videoUrl);
+    }
+
+
+    @Override
     public List<TopicResponseDto> getTopics(UUID sectionId, UUID userId) {
 
         UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userId)
@@ -181,6 +199,132 @@ public class InstructorServiceImpl implements InstructorService {
 
         List<TopicResponseDto> topicResponseDtos = topicRepository.getAllTopics(sectionId);
         return topicResponseDtos;
+    }
+
+    @Override
+    public ApiResponse updateCourse(
+            UUID courseId,
+            String courseName,
+            String courseDesc,
+            double fees,
+            int discountPercentage,
+            int hour,
+            UUID categoryId,
+            MultipartFile image,
+            MultipartFile video,
+            JWTDTO user
+    ) {
+
+        UUID userId = user.getUserId();
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new UserNotFoundException("No such user exist"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor not found"));
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Course not found"));
+
+
+        if (!course.getInstructor().getId().equals(instructor.getId())) {
+            return new ApiResponse(false, "You are not authorized to update this course");
+        }
+
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("No such category exist"));
+
+
+        course.setTitle(courseName);
+        course.setDescription(courseDesc);
+        course.setFees(fees);
+        course.setDiscount(discountPercentage);
+        course.setHour(hour);
+        course.setCategory(category);
+
+        try {
+
+            if (image != null && !image.isEmpty()) {
+                String imagePath = s3Service.uploadFile(image, "course/courseThumbnails");
+                course.setThumbnail(imagePath);
+            }
+
+
+            if (video != null && !video.isEmpty()) {
+                String videoPath = s3Service.uploadFile(video, "course/courseIntroVideo");
+                course.setIntroVideo(videoPath);
+            }
+
+        } catch (IOException e) {
+            return new ApiResponse(false, "Error while uploading image/video");
+        }
+
+        Course updatedCourse = courseRepository.save(course);
+
+        if (updatedCourse == null) {
+            return new ApiResponse(false, "Unable to update course");
+        }
+
+        return new ApiResponse(true, "Course Updated Successfully");
+    }
+
+    @Override
+    public SectionDto getSection(UUID sectionId) {
+
+        Section section = sectionRepository.findById(sectionId).orElseThrow(()-> new ResourceNotFoundException("Section Not Found"));
+        SectionDto dto = new SectionDto();
+        dto.setSectionName(section.getTitle());
+        dto.setSectionDesc(section.getDescription());
+        dto.setSectionNumber(section.getSectionNumber());
+        return dto;
+
+    }
+
+    @Transactional
+    @Override
+    public ApiResponse updateSection(UUID userId, UUID sectionId, AddSectionReqDto reqDto) {
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Section section = sectionRepository.findById(sectionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Section Not Found"));
+
+
+        if (!section.getCourse().getInstructor().getId().equals(instructor.getId())) {
+            return new ApiResponse(false, "You are not authorized to update this section");
+        }
+
+        Course course = courseRepository.findById(section.getCourse().getId()).orElseThrow(() -> new ResourceNotFoundException("Course Not Found"));
+
+
+        section.setTitle(reqDto.getSectionTitle());
+        section.setDescription(reqDto.getSectionDesc());
+        section.setSectionNumber(reqDto.getSectionNumber());
+        sectionRepository.save(section);
+
+        return new ApiResponse(true, "Section Updated Successfully");
+    }
+
+    @Override
+    public TopicResponseDto getTopic(UUID topicId) {
+        Topic topic = topicRepository.findById(topicId).orElseThrow(()-> new ResourceNotFoundException("Topic Not Found"));
+        TopicResponseDto dto = new TopicResponseDto();
+        dto.setTopicId(topicId);
+        dto.setMin(topic.getMin());
+        dto.setNotes(topic.getNotes());
+        dto.setTopicNumber(topic.getTopicNumber());
+        dto.setDescription(topic.getDescription());
+        dto.setVideoUrl(topic.getVideo());
+        dto.setTitle(topic.getTitle());
+        return dto;
     }
 
 
