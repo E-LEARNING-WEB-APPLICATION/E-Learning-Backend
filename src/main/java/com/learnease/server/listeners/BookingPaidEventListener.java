@@ -1,10 +1,17 @@
 package com.learnease.server.listeners;
 
+import com.learnease.server.dto.invoice.CoursePurchasedInvoiceDto;
 import com.learnease.server.dto.invoice.InvoiceDto;
+import com.learnease.server.dto.notification.EmailEvent;
 import com.learnease.server.events.BookingPaidEvent;
 import com.learnease.server.model.Booking;
 import com.learnease.server.model.enums.InvoiceStatus;
+import com.learnease.server.model.enums.NotificationType;
+import com.learnease.server.model.enums.Role;
+import com.learnease.server.model.enums.Status;
 import com.learnease.server.repository.BookingRepository;
+import com.learnease.server.repository.UserAuthRepository;
+import com.learnease.server.service.EmailService;
 import com.learnease.server.service.InvoiceService;
 import com.learnease.server.service.InvoiceStorageService;
 import com.learnease.server.util.enums.InvoiceType;
@@ -16,6 +23,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -25,6 +36,8 @@ public class BookingPaidEventListener {
     private final InvoiceService invoiceService;
     private final InvoiceStorageService invoiceStorageService;
     private final BookingInvoiceMapper bookingInvoiceMapper;
+    private final EmailService emailService;
+    private final UserAuthRepository userAuthRepository;
 
     @Async
     @TransactionalEventListener(
@@ -37,24 +50,42 @@ public class BookingPaidEventListener {
         try {
 
             InvoiceDto dto = bookingInvoiceMapper.fromBooking(booking);
-            log.info("generating invoice pdf");
             byte[] pdf = invoiceService.generateInvoice(
                     InvoiceType.COURSE_PURCHASE,
                     dto
             );
-            log.info("storing invoice pdf..");
             String url = invoiceStorageService.storeInvoice(
                     InvoiceType.COURSE_PURCHASE,
                     dto.getInvoiceNumber(),
                     pdf
             );
-            log.info("stored invoice pdf..");
 
             booking.setInvoiceUrl(url);
             booking.setInvoiceStatus(InvoiceStatus.GENERATED);
             bookingRepository.save(booking);
-            log.info("all done..");
 
+            CoursePurchasedInvoiceDto invoiceDto = (CoursePurchasedInvoiceDto) dto;
+            emailService.sendEmail(
+                    EmailEvent.builder()
+                            .eventType(NotificationType.COURSE_PURCHASED)
+                            .to(List.of(booking.getStudent().getUserDetails().getUserAuth().getEmail()))
+                            .subject("Course purchase order confirmed")
+                            .data(Map.of(
+                                    "studentFullName", invoiceDto.getStudentFullName(),
+                                    "courseTitle", invoiceDto.getCourseTitle(),
+                                    "instructorName", invoiceDto.getInstructorName(),
+                                    "amountPaid", invoiceDto.getAmountPaid(),
+                                    "currency", invoiceDto.getCurrency(),
+                                    "invoiceNumber", invoiceDto.getInvoiceNumber(),
+                                    "invoiceDate", invoiceDto.getInvoiceDate(),
+                                    "platformName", invoiceDto.getPlatformName(),
+                                    "platformEmail", invoiceDto.getPlatformEmail()
+                            ))
+                            .attachments(Map.of(
+                                    "Booking_invoice"+ LocalDateTime.now() + ".pdf", url
+                            ))
+                            .meta(Map.of())
+                            .build());
         } catch (Exception ex) {
             // TODO: log + retry later
             booking.setInvoiceStatus(InvoiceStatus.FAILED);
