@@ -20,7 +20,7 @@ public interface InstructorService {
 
     List<CoursesDto> getAllCourses(JWTDTO user);
 
-    public CourseInstructorResponseDto getInstructorById(UUID instructorId);
+    CourseInstructorResponseDto getInstructorById(UUID instructorId);
 
     List<DashboardInstructorResponseDto> getAllInstructors();
 
@@ -42,6 +42,8 @@ public interface InstructorService {
     ApiResponse updateSection(UUID userId, UUID sectionId, AddSectionReqDto addSectionReqDto);
 
     TopicResponseDto getTopic(UUID topicId);
+
+    ApiResponse withdrawMoney(UUID authId);
 
     List<CourseStudentDto> getCoursesData(UUID userId);
 
