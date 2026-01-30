@@ -20,7 +20,7 @@ public interface InstructorService {
 
     List<CoursesDto> getAllCourses(JWTDTO user);
 
-    public CourseInstructorResponseDto getInstructorById(UUID instructorId);
+    CourseInstructorResponseDto getInstructorById(UUID instructorId);
 
     List<DashboardInstructorResponseDto> getAllInstructors();
 

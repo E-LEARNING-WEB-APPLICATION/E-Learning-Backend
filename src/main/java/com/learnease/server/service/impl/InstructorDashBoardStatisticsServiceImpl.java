@@ -6,7 +6,6 @@ import com.learnease.server.dto.instructor.instructorDashboard.DashboardStatisti
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.Student;
-import com.learnease.server.model.WalletTransaction;
 import com.learnease.server.model.enums.BookingStatus;
 import com.learnease.server.repository.*;
 import com.learnease.server.service.InstructorDashBoardStatisticsService;
@@ -14,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;

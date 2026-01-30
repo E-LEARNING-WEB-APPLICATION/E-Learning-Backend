@@ -7,12 +7,9 @@ import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
-import com.learnease.server.model.Course;
 import com.learnease.server.service.InstructorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +19,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.security.Principal;
 import java.util.List;
 import java.util.UUID;
 
