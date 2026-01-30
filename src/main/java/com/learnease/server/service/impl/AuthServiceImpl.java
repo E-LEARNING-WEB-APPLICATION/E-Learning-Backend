@@ -312,7 +312,7 @@ public class AuthServiceImpl implements AuthService {
         if (userAuth.getRole() == Role.INSTRUCTOR) {
             emailService.sendEmail(
                     EmailEvent.builder()
-                            .eventType(NotificationType.STUDENT_REGISTERED)
+                            .eventType(NotificationType.INSTRUCTOR_REGISTERED)
                             .to(List.of(userAuth.getEmail()))
                             .subject("LearnEase: Registration Successful!")
                             .data(Map.of(

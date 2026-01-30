@@ -16,6 +16,7 @@ public enum NotificationType {
     // Instructor
     INSTRUCTOR_REGISTERED,
     INSTRUCTOR_APPROVED,
+    INSTRUCTOR_REJECTED,
     INSTRUCTOR_PAYOUT,
     COURSE_PUBLISHED,
 
