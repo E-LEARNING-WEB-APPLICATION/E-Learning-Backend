@@ -21,7 +21,7 @@ public interface CourseService {
 
     ApiResponse getCoursePaymentStatus(UUID courseId, UUID authId);
 
-    public List<EnrolledCourseResponseDto> getMyEnrolledCourses(UUID authId);
+    List<EnrolledCourseResponseDto> getMyEnrolledCourses(UUID authId);
     long getCourseCount();
 
     Page<DashboardCoursesResponseDto> getDashboardCourses(DashboardCourseFilterDto filter, Pageable pageable);

@@ -2,7 +2,6 @@ package com.learnease.server.repository;
 
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.model.Course;
-import com.learnease.server.model.Instructor;
 import com.learnease.server.projection.course.DashboardCoursesProjection;
 import com.learnease.server.projection.instructorDashboard.CategoryCourseCountProjection;
 import org.springframework.data.domain.Page;
