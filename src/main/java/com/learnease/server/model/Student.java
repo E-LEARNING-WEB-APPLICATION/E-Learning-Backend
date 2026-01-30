@@ -32,7 +32,7 @@ import java.util.Set;
 @AttributeOverride(name = "id" , column = @Column(name = "student_id"))
 public class Student extends BaseEntity{
 
-    @OneToOne(cascade = CascadeType.PERSIST) //to protect multiple db save method whenever object is created then it gets persists at that time only
+    @OneToOne(cascade = CascadeType.ALL) //to protect multiple db save method whenever object is created then it gets persists at that time only
     @JoinColumn(name = "user_id" , nullable = false)
     private UserDetails userDetails;
 

@@ -6,6 +6,8 @@ import com.learnease.server.dto.auth.InstructorRegisterRequestDto;
 import com.learnease.server.dto.auth.LoginRequestDto;
 import com.learnease.server.dto.auth.LoginResponseDto;
 import com.learnease.server.dto.auth.StudentRegisterRequestDto;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 public interface AuthService {
     public ApiResponse registerStudent(StudentRegisterRequestDto requestDto);
@@ -18,4 +20,8 @@ public interface AuthService {
             String otp,
             String newPassword
     );
+
+    ApiResponse sendEmailVerificationOtp(@Email @NotBlank String email);
+
+    ApiResponse verifyEmailOtp(@Email @NotBlank String email, @NotBlank String otp);
 }

@@ -44,6 +44,10 @@ public class UserAuth extends BaseEntity implements UserDetails {
     @NotNull
     private Status status;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified = false;
+
+
     @PastOrPresent(message = "Last login time cannot be in the future")
     private LocalDateTime lastLoginAt;
 
