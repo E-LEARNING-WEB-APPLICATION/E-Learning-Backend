@@ -3,13 +3,19 @@ package com.learnease.server.service.impl;
 import com.learnease.server.dto.booking.CreateBookingRequestDto;
 import com.learnease.server.dto.booking.CreateBookingResponseDto;
 import com.learnease.server.dto.booking.VerifyPaymentRequestDto;
+import com.learnease.server.dto.invoice.InvoiceDto;
+import com.learnease.server.events.BookingPaidEvent;
 import com.learnease.server.exception.custom_exception.BookingException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.model.*;
 import com.learnease.server.model.enums.*;
 import com.learnease.server.repository.*;
 import com.learnease.server.service.BookingService;
+import com.learnease.server.service.InvoiceService;
+import com.learnease.server.service.InvoiceStorageService;
+import com.learnease.server.util.enums.InvoiceType;
 import com.learnease.server.util.mappers.BookingMapper;
+import com.learnease.server.util.mappers.invoice.BookingInvoiceMapper;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
@@ -18,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -38,6 +45,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final WalletTransactionRepository walletTransactionRepository;
     private final CommissionConfigRepository  commissionConfigRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${razorpay.key-secret}")
     private String razorpaySecret;
@@ -101,6 +109,8 @@ public class BookingServiceImpl implements BookingService {
 
         markBookingAsPaid(booking, request.getRazorpayPaymentId());
         enrollStudentIfNotAlready(booking);
+
+        applicationEventPublisher.publishEvent(new BookingPaidEvent(booking.getId()));
     }
 
     // ================================
