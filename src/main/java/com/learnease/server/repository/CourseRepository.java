@@ -2,9 +2,10 @@ package com.learnease.server.repository;
 
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.model.Course;
-import com.learnease.server.model.Instructor;
 import com.learnease.server.projection.course.DashboardCoursesProjection;
 import com.learnease.server.projection.instructorDashboard.CategoryCourseCountProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -118,5 +119,67 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             @Param("instructorId") UUID instructorId
     );
 
+
+    @Query(
+            value = """
+            SELECT
+                BIN_TO_UUID(c.course_id) AS id,
+                BIN_TO_UUID(c.category_id) AS categoryId,
+                c.thumbnail AS thumbnail,
+                c.title AS title,
+                c.fees AS fees,
+                COALESCE(AVG(f.rating), 0) AS rating,
+                COUNT(f.feedback_id) AS reviews,
+                c.hour AS duration,
+                c.discount AS discount
+            FROM course c
+            LEFT JOIN feedback f ON f.course_id = c.course_id
+            WHERE
+                (:categoryId IS NULL OR c.category_id = :categoryId)
+                AND (:search IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')))
+            GROUP BY
+                c.course_id,
+                c.category_id,
+                c.thumbnail,
+                c.title,
+                c.fees,
+                c.hour,
+                c.discount
+            ORDER BY
+                /* price */
+                CASE WHEN :sortBy = 'price_low_high' THEN c.fees END ASC,
+                CASE WHEN :sortBy = 'price_high_low' THEN c.fees END DESC,
+
+                /* discount */
+                CASE WHEN :sortBy = 'discount_high_low' THEN c.discount END DESC,
+
+                /* name */
+                CASE WHEN :sortBy = 'name_asc' THEN c.title END ASC,
+                CASE WHEN :sortBy = 'name_desc' THEN c.title END DESC,
+
+                /* rating */
+                CASE WHEN :sortBy = 'rating_high_low' THEN AVG(f.rating) END DESC,
+
+                /* reviews */
+                CASE WHEN :sortBy = 'reviews_high_low' THEN COUNT(f.feedback_id) END DESC,
+
+                /* default: newest */
+                c.created_at DESC
+            """,
+            countQuery = """
+            SELECT COUNT(*)
+            FROM course c
+            WHERE
+                (:categoryId IS NULL OR c.category_id = :categoryId)
+                AND (:search IS NULL OR LOWER(c.title) LIKE LOWER(CONCAT('%', :search, '%')))
+            """,
+            nativeQuery = true
+    )
+    Page<DashboardCoursesProjection> findDashboardCourses(
+            @Param("categoryId") UUID categoryId,
+            @Param("search") String search,
+            @Param("sortBy") String sortBy,
+            Pageable pageable
+    );
 
 }

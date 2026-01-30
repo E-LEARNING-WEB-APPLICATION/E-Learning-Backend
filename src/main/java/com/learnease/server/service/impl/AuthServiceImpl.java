@@ -8,6 +8,7 @@ import com.learnease.server.dto.auth.StudentRegisterRequestDto;
 import com.learnease.server.dto.notification.EmailEvent;
 import com.learnease.server.dto.notification.SendNotificationDTO;
 import com.learnease.server.exception.custom_exception.EmailAlreadyExistsException;
+import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.UserAuth;
@@ -20,6 +21,7 @@ import com.learnease.server.repository.UserAuthRepository;
 import com.learnease.server.service.AuthService;
 import com.learnease.server.service.EmailService;
 import com.learnease.server.service.NotificationService;
+import com.learnease.server.service.OtpService;
 import com.learnease.server.util.JwtUtil;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authenticationManager; //for the Managers authenticate method
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final OtpService otpService;
 
 
     @Override
@@ -158,5 +161,56 @@ public class AuthServiceImpl implements AuthService {
         userAuth.setLastLoginAt(LocalDateTime.now());
         String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
         return new LoginResponseDto(true, "Login Successful", token);
+    }
+
+    @Override
+    public ApiResponse<String> requestPasswordResetOtp(String email) {
+
+        userAuthRepository.findByEmail(email).ifPresent(user -> {
+
+            String otp = otpService.generateAndSaveOtp(
+                    user.getId(),
+                    OtpPurpose.PASSWORD_RESET
+            );
+
+            emailService.sendEmail(
+                    EmailEvent.builder()
+                            .eventType(NotificationType.PASSWORD_CHANGED)
+                            .to(List.of(user.getEmail()))
+                            .subject("Reset Your Password")
+                            .data(Map.of(
+                                    "userName", email,
+                                    "otp", otp,
+                                    "validForMinutes", 5
+                            ))
+                            .meta(Map.of(
+                                    "channel", "EMAIL",
+                                    "priority", "HIGH"
+                            ))
+                            .build()
+            );
+        });
+
+
+        return new ApiResponse<>(
+                true,
+                "If the email exists, OTP has been sent"
+        );
+    }
+
+    @Override
+    public ApiResponse<String> resetPasswordWithOtp(String email, String otp, String newPassword) {
+
+        UserAuth user = userAuthRepository.findByEmail(email)
+                .orElseThrow(()-> new UserNotFoundException("Invalid Email"));
+
+        otpService.validateOtp(user.getId() , OtpPurpose.PASSWORD_RESET , otp);
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userAuthRepository.save(user);
+
+        otpService.consumeOtp(user.getId() , OtpPurpose.PASSWORD_RESET);
+
+        return new ApiResponse<>(true , "Password reset successful");
     }
 }

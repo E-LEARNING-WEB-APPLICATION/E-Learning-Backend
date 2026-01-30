@@ -42,4 +42,8 @@ public interface InstructorService {
     ApiResponse updateSection(UUID userId, UUID sectionId, AddSectionReqDto addSectionReqDto);
 
     TopicResponseDto getTopic(UUID topicId);
+
+    List<CourseStudentDto> getCoursesData(UUID userId);
+
+    List<StudentListDto> getStudentsList(UUID userId,UUID courseId) ;
 }

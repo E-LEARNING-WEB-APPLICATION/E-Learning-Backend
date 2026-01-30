@@ -5,6 +5,8 @@ import com.learnease.server.dto.auth.InstructorRegisterRequestDto;
 import com.learnease.server.dto.auth.LoginRequestDto;
 import com.learnease.server.dto.auth.LoginResponseDto;
 import com.learnease.server.dto.auth.StudentRegisterRequestDto;
+import com.learnease.server.dto.passwordreset.PasswordResetConfirmRequestDto;
+import com.learnease.server.dto.passwordreset.PasswordResetOtpRequestDto;
 import com.learnease.server.model.UserAuth;
 import com.learnease.server.service.AuthService;
 import com.learnease.server.util.JwtUtil;
@@ -60,4 +62,32 @@ public class AuthController {
         return ResponseEntity.status(200)
                 .body(authService.login(requestDto));
     }
+
+
+    @Operation(
+            summary = "Request Password Reset OTP",
+            description = "Generates OTP for password reset. Always returns success to avoid user enumeration."
+    )
+    @PostMapping("/password/reset/otp")
+    public ResponseEntity<ApiResponse> requestPasswordResetOtp(@Valid @RequestBody PasswordResetOtpRequestDto request){
+        ApiResponse response = authService.requestPasswordResetOtp(request.getEmail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(
+            summary = "Reset Password using OTP",
+            description = "Validates OTP and resets user password"
+    )
+    @PostMapping("/password/reset/confirm")
+    public ResponseEntity<ApiResponse> resetPasswordWithOtp(
+            @Valid @RequestBody PasswordResetConfirmRequestDto request
+    ) {
+        ApiResponse response = authService.resetPasswordWithOtp(
+                request.getEmail(),
+                request.getOtp(),
+                request.getNewPassword()
+        );
+        return ResponseEntity.ok(response);
+    }
+
 }

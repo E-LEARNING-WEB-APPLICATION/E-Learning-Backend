@@ -4,12 +4,16 @@ package com.learnease.server.controller;
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.course.CourseResponseDto;
+import com.learnease.server.dto.course.DashboardCourseFilterDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
 import com.learnease.server.dto.course.EnrolledCourseResponseDto;
 import com.learnease.server.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -102,6 +106,16 @@ public class CourseController {
                 .status(HttpStatus.OK)
                 .body(new ApiResponse<List<EnrolledCourseResponseDto>>(true , response));
     }
+
+
+        @GetMapping("/exploreCourses")
+        public Page<DashboardCoursesResponseDto> getDashboardCourses(
+                DashboardCourseFilterDto filter,
+                @PageableDefault(size = 8) Pageable pageable
+        ) {
+            return courseService.getDashboardCourses(filter, pageable);
+        }
+
 
 
 }
