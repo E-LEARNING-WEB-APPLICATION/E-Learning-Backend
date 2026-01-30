@@ -94,7 +94,7 @@ public class AdminStaticsServiceImpl implements AdminStatisticsService {
 
     @Override
     public BigDecimal getTotalRevenue() {
-        return bookingRepository.findSumPricePaid();
+        return bookingRepository.findSumPricePaid(BookingStatus.PAID);
     }
 
 
