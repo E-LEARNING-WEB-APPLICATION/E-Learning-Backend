@@ -137,6 +137,18 @@ public class GlobalExceptionHandler {
         };
     }
 
+    @ExceptionHandler(EmailNotVerifiedException.class)
+    public ResponseEntity<?> handleEmailNotVerifiedException(
+            EmailNotVerifiedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse<>(
+                        false,
+                        ex.getMessage()
+                ));
+    }
+
+
 
 
     @ExceptionHandler(Exception.class)
