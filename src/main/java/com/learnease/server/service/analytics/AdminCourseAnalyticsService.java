@@ -40,7 +40,7 @@ public class AdminCourseAnalyticsService {
         LocalDateTime recentDate = LocalDateTime.now().minusDays(7);
 
         Page<AdminCourseOverviewDto> pageResult =
-                repository.fetchCourseOverview(recentDate, BookingStatus.PAID, pageable)
+                repository.fetchCourseOverview(recentDate, BookingStatus.PAID.name(), pageable)
                         .map(p -> new AdminCourseOverviewDto(
                                 p.getCourseId(),
                                 p.getCourseName(),
