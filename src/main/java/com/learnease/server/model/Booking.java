@@ -1,6 +1,7 @@
 package com.learnease.server.model;
 
 import com.learnease.server.model.enums.BookingStatus;
+import com.learnease.server.model.enums.InvoiceStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -63,6 +64,12 @@ public class Booking extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	private BookingStatus status;
+
+    @Column(length = 300)
+    private String invoiceUrl;
+
+    @Enumerated(EnumType.STRING)
+    private InvoiceStatus invoiceStatus = InvoiceStatus.PENDING;
 
 	private LocalDateTime expiresAt;
 
