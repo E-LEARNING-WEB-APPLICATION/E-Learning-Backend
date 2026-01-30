@@ -2,6 +2,7 @@ package com.learnease.server.service.impl;
 
 import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.course.CourseResponseDto;
+import com.learnease.server.dto.course.DashboardCourseFilterDto;
 import com.learnease.server.dto.course.DashboardCoursesResponseDto;
 import com.learnease.server.dto.course.EnrolledCourseResponseDto;
 import com.learnease.server.exception.custom_exception.CourseNotFoundException;
@@ -16,6 +17,8 @@ import com.learnease.server.service.CourseService;
 import com.learnease.server.util.mappers.CourseMapper;
 import com.learnease.server.util.mappers.EnrollmentMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -122,5 +125,28 @@ public class CourseServiceImpl implements CourseService {
     @Override
     public long getCourseCount() {
         return courseRepository.count();
+    }
+
+    @Override
+    public Page<DashboardCoursesResponseDto> getDashboardCourses(DashboardCourseFilterDto filter, Pageable pageable) {
+        String sortBy = filter.getSortBy() == null ? "" : filter.getSortBy();
+        UUID categoryId = filter.getCategoryId();
+        String search =
+                (filter.getSearch() == null || filter.getSearch().isBlank())
+                        ? null
+                        : filter.getSearch();
+
+        return courseRepository.findDashboardCourses(categoryId,search,sortBy, pageable)
+                .map(p -> new DashboardCoursesResponseDto(
+                        p.getId(),
+                        p.getCategoryId(),
+                        p.getThumbnail(),
+                        p.getTitle(),
+                        p.getFees(),
+                        p.getRating(),
+                        p.getReviews(),
+                        p.getDuration(),
+                        p.getDiscount()
+                ));
     }
 }
