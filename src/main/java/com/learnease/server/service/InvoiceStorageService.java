@@ -1,5 +1,6 @@
 package com.learnease.server.service;
 
+import com.learnease.server.exception.custom_exception.InvoiceStorageException;
 import com.learnease.server.service.impl.S3Service;
 import com.learnease.server.util.enums.InvoiceType;
 import lombok.RequiredArgsConstructor;
@@ -17,14 +18,18 @@ public class InvoiceStorageService {
             byte[] pdfBytes
     ) {
 
-        String folder = "invoices/" + type.name().toLowerCase();
-        String fileName = invoiceNumber + ".pdf";
+        try{
+            String folder = "invoices/" + type.name().toLowerCase();
+            String fileName = invoiceNumber + ".pdf";
 
-        return s3Service.uploadBytes(
-                pdfBytes,
-                folder,
-                fileName,
-                "application/pdf"
-        );
+            return s3Service.uploadBytes(
+                    pdfBytes,
+                    folder,
+                    fileName,
+                    "application/pdf"
+            );
+        } catch (Exception e) {
+            throw new InvoiceStorageException("Invoice storage failed", e);
+        }
     }
 }

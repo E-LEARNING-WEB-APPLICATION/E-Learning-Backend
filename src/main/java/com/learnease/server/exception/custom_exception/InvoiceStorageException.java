@@ -1,0 +1,8 @@
+package com.learnease.server.exception.custom_exception;
+
+public class InvoiceStorageException extends RuntimeException {
+    public InvoiceStorageException(String message){super(message);}
+    public InvoiceStorageException(String message, Throwable cause) {
+        super(message, cause); // Preserve the original IOException as the cause
+    }
+}
