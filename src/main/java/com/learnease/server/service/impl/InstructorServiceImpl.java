@@ -29,16 +29,20 @@ import com.learnease.server.service.NotificationService;
 import com.learnease.server.util.mappers.InstructorMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.web.embedded.netty.NettyWebServer;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class InstructorServiceImpl implements InstructorService {
 
     private final CourseRepository courseRepository;
@@ -51,6 +55,7 @@ public class InstructorServiceImpl implements InstructorService {
     private final TopicRepository topicRepository;
     private final TopicServiceImpl topicService;
     private final NotificationService notificationService;
+    private final WalletTransactionRepository walletTransactionRepository;
 
     @Override
     public ApiResponse addCourse(String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user) {
@@ -352,6 +357,34 @@ public class InstructorServiceImpl implements InstructorService {
         dto.setVideoUrl(topic.getVideo());
         dto.setTitle(topic.getTitle());
         return dto;
+    }
+
+    @Override
+    public ApiResponse withdrawMoney(UUID authId) {
+        Instructor instructor = instructorRepository.findByUserDetails_UserAuth_Id(authId)
+                .orElseThrow(()->new UserNotFoundException("No such Instructor Exist"));
+        BigDecimal availableBalance =
+                walletTransactionRepository.getAvailableBalance(instructor.getId());
+
+        if (availableBalance.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalStateException("No available balance to withdraw");
+        }
+
+        // 🔹 call payout gateway here
+        // payoutService.transfer(instructorId, availableBalance);
+
+        int rowAffected = walletTransactionRepository.withdrawAvailableAmount(
+                instructor.getId(),
+                LocalDateTime.now()
+        );
+
+        if (rowAffected == 0){
+            throw new IllegalStateException("Something went on our side the if money is not deposited in next 2 to 3 working days please contact admin");
+        }
+        availableBalance =
+                walletTransactionRepository.getAvailableBalance(instructor.getId());
+
+        return new ApiResponse(true,"All the money is withdrawn");
     }
 
 

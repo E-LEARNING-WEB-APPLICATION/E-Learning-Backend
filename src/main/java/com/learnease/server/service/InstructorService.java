@@ -42,4 +42,6 @@ public interface InstructorService {
     ApiResponse updateSection(UUID userId, UUID sectionId, AddSectionReqDto addSectionReqDto);
 
     TopicResponseDto getTopic(UUID topicId);
+
+    ApiResponse withdrawMoney(UUID authId);
 }
