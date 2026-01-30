@@ -124,8 +124,7 @@ public class AuthServiceImpl implements AuthService {
         emailService.sendEmail(
                 EmailEvent.builder()
                         .eventType(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
-//                        .to(userAuthRepository.findEmailByRoleAndStatusActive(Role.ADMIN, Status.ACTIVE))
-                        .to(List.of("gandhioms16@gmail.com"))
+                        .to(userAuthRepository.findEmailByRoleAndStatus(Role.ADMIN, Status.ACTIVE))
                         .subject("New Instructor Registered")
                         .data(Map.of(
                                 "firstName",
