@@ -64,7 +64,8 @@ public class AuthServiceImpl implements AuthService {
         userAuth.setEmail(requestDto.getEmail());
         userAuth.setPassword(passwordEncoder.encode(requestDto.getPassword()));
         userAuth.setRole(Role.STUDENT);
-        userAuth.setStatus(Status.ACTIVE);
+        userAuth.setStatus(Status.PENDING);
+        userAuth.setEmailVerified(false);
 
         UserDetails userDetails = new UserDetails();
         userDetails.setFirstName(requestDto.getFirstName());
@@ -78,7 +79,28 @@ public class AuthServiceImpl implements AuthService {
 
         studentRepository.save(student);
 
-        return new ApiResponse<>(true, "Student Registered Successfully.");
+        String otp = otpService.generateAndSaveOtp(
+                userAuth.getId(),
+                OtpPurpose.EMAIL_VERIFY
+        );
+
+        emailService.sendEmail(
+                EmailEvent.builder()
+                        .eventType(NotificationType.EMAIL_VERIFICATION)
+                        .to(List.of(userAuth.getEmail()))
+                        .subject("Verify your email")
+                        .data(Map.of(
+                                "otp", otp,
+                                "validForMinutes", 5
+                        ))
+                        .meta(Map.of())
+                        .build()
+        );
+
+        return new ApiResponse<>(
+                true,
+                "Registration started. Please verify your email."
+        );
     }
 
     @Override
@@ -92,6 +114,7 @@ public class AuthServiceImpl implements AuthService {
         userAuth.setPassword(passwordEncoder.encode(request.getPassword()));
         userAuth.setRole(Role.INSTRUCTOR);
         userAuth.setStatus(Status.PENDING);
+        userAuth.setEmailVerified(false);
 
         UserDetails userDetails = new UserDetails();
         userDetails.setFirstName(request.getFirstName());
@@ -106,33 +129,20 @@ public class AuthServiceImpl implements AuthService {
 
         instructorRepository.save(instructor);
 
-        notificationService.sendNotification(
-                SendNotificationDTO.builder()
-                        .title("New Instructor Registered")
-                        .message(instructor.getUserDetails().getFirstName()
-                                + instructor.getUserDetails().getLastName()
-                                + " registered as instructor. Waiting for approval")
-                        .type(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
-                        .priority(NotificationPriority.MEDIUM)
-                        .subjectId(instructor.getId())
-                        .subjectType(NotificationSubjectType.INSTRUCTOR)
-                        .role(Role.ADMIN)
-                        .build()
+        String otp = otpService.generateAndSaveOtp(
+                userAuth.getId(),
+                OtpPurpose.EMAIL_VERIFY
         );
 
-        //send Email to admin
+        // Send verification email to instructor
         emailService.sendEmail(
                 EmailEvent.builder()
-                        .eventType(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
-                        .to(userAuthRepository.findEmailByRoleAndStatus(Role.ADMIN, Status.ACTIVE))
-                        .subject("New Instructor Registered")
+                        .eventType(NotificationType.EMAIL_VERIFICATION)
+                        .to(List.of(userAuth.getEmail()))
+                        .subject("Verify your email")
                         .data(Map.of(
-                                "firstName",
-                                instructor.getUserDetails().getFirstName(),
-                                "lastName", instructor.getUserDetails().getLastName(),
-                                "email", instructor.getUserDetails().getUserAuth().getEmail(),
-                                "phoneNo", instructor.getUserDetails().getPhoneNo(),
-                                "experience", instructor.getExperience()
+                                "otp", otp,
+                                "validForMinutes", 5
                         ))
                         .meta(Map.of())
                         .build()
@@ -158,6 +168,12 @@ public class AuthServiceImpl implements AuthService {
                         requestDto.getEmail(), requestDto.getPassword()
                 ));
         UserAuth userAuth = (UserAuth) fullyAuthenticated.getPrincipal();
+
+        // Block login if email not verified
+        if (!userAuth.isEmailVerified()) {
+            throw new EmailAlreadyExistsException("Please verify your email before logging in");
+        }
+
         userAuth.setLastLoginAt(LocalDateTime.now());
         String token = jwtUtil.generateToken((UserAuth) fullyAuthenticated.getPrincipal());
         return new LoginResponseDto(true, "Login Successful", token);
@@ -213,4 +229,115 @@ public class AuthServiceImpl implements AuthService {
 
         return new ApiResponse<>(true , "Password reset successful");
     }
-}
+
+    @Override
+    public ApiResponse<String> sendEmailVerificationOtp(String email) {
+
+        UserAuth userAuth = userAuthRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Invalid email"));
+
+        // If already verified, block resend
+        if (userAuth.isEmailVerified()) {
+            return new ApiResponse<>(
+                    true,
+                    "Email already verified"
+            );
+        };
+
+        String otp = otpService.generateAndSaveOtp(
+                userAuth.getId(),
+                OtpPurpose.EMAIL_VERIFY
+        );
+
+        emailService.sendEmail(
+                EmailEvent.builder()
+                        .eventType(NotificationType.EMAIL_VERIFICATION)
+                        .to(List.of(userAuth.getEmail()))
+                        .subject("Verify your email")
+                        .data(Map.of(
+                                "otp", otp,
+                                "validForMinutes", 5
+                        ))
+                        .meta(Map.of())
+                        .build()
+        );
+
+        return new ApiResponse<>(
+                true,
+                "Verification OTP sent to email"
+        );
+    }
+
+
+    @Override
+    public ApiResponse verifyEmailOtp(String email, String otp) {
+
+        UserAuth userAuth = userAuthRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException("Invalid email"));
+
+        otpService.validateOtp(
+                userAuth.getId(),
+                OtpPurpose.EMAIL_VERIFY,
+                otp
+        );
+
+        userAuth.setEmailVerified(true);
+
+        if (userAuth.getRole() == Role.STUDENT) {
+            userAuth.setStatus(Status.ACTIVE);
+        }
+
+        userAuthRepository.save(userAuth);
+
+        otpService.consumeOtp(
+                userAuth.getId(),
+                OtpPurpose.EMAIL_VERIFY
+        );
+
+        if (userAuth.getRole() == Role.INSTRUCTOR) {
+
+            Instructor instructor = instructorRepository
+                    .findByUserDetails_UserAuth_Id(userAuth.getId())
+                    .orElseThrow(() ->
+                            new IllegalStateException("Instructor not found for verified user"));
+
+            notificationService.sendNotification(
+                    SendNotificationDTO.builder()
+                            .title("Instructor Email Verified")
+                            .message(
+                                    instructor.getUserDetails().getFirstName() + " " +
+                                            instructor.getUserDetails().getLastName() +
+                                            " verified email and is waiting for approval"
+                            )
+                            .type(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
+                            .priority(NotificationPriority.MEDIUM)
+                            .subjectId(instructor.getId())
+                            .subjectType(NotificationSubjectType.INSTRUCTOR)
+                            .role(Role.ADMIN)
+                            .build()
+            );
+
+            emailService.sendEmail(
+                    EmailEvent.builder()
+                            .eventType(NotificationType.INSTRUCTOR_APPROVAL_PENDING)
+                            .to(userAuthRepository.findEmailByRoleAndStatus(Role.ADMIN, Status.ACTIVE))
+                            .subject("Instructor Waiting for Approval")
+                            .data(Map.of(
+                                    "firstName", instructor.getUserDetails().getFirstName(),
+                                    "lastName", instructor.getUserDetails().getLastName(),
+                                    "email", instructor.getUserDetails().getUserAuth().getEmail(),
+                                    "phoneNo", instructor.getUserDetails().getPhoneNo(),
+                                    "experience", instructor.getExperience()
+                            ))
+                            .meta(Map.of())
+                            .build()
+            );
+        }
+
+        // Final response
+        return new ApiResponse<>(
+                true,
+                "Email verified successfully."
+        );
+    };
+};
