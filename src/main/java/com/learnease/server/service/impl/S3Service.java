@@ -27,7 +27,7 @@ public class S3Service {
     private String generateSafeFileName(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
 
-        // 1️⃣ Extract extension
+        // Extract extension
         String extension = "";
 
         if (originalFilename != null && originalFilename.contains(".")) {
@@ -36,7 +36,7 @@ public class S3Service {
                     .toLowerCase();
         }
 
-        // 2️⃣ Generate safe name
+        // Generate safe name
         return UUID.randomUUID() + extension;
     }
 
@@ -69,6 +69,34 @@ public class S3Service {
                 .build();
 
         s3Client.deleteObject(request);
+    }
+
+    public String uploadBytes(
+            byte[] data,
+            String folder,
+            String fileName,
+            String contentType
+    ) {
+
+        String key = folder + "/" + fileName;
+
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .contentType(contentType)
+                .contentLength((long) data.length)
+                .build();
+
+        s3Client.putObject(
+                request,
+                RequestBody.fromBytes(data)
+        );
+
+        return buildPublicUrl(key);
+    }
+
+    private String buildPublicUrl(String key) {
+        return "https://" + bucketName + ".s3.amazonaws.com/" + key;
     }
 
 }
