@@ -57,6 +57,7 @@ public class SecurityConfig {
                                 "/api/v1/courses/allCourses",//Dashboard display courses
                                 "/api/v1/courses/getCategoryCourses/{categoryId}",//Dashboard display category courses
                                 "/api/v1/instructor/getAllInstructor",//Dashboard display instructor
+                                "/api/v1/courses/exploreCourses",//Dashboard explore pagination api
                                 "/api/v1/notifications/stream"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS , "/**").permitAll()

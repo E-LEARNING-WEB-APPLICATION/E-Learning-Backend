@@ -44,4 +44,8 @@ public interface InstructorService {
     TopicResponseDto getTopic(UUID topicId);
 
     ApiResponse withdrawMoney(UUID authId);
+
+    List<CourseStudentDto> getCoursesData(UUID userId);
+
+    List<StudentListDto> getStudentsList(UUID userId,UUID courseId) ;
 }

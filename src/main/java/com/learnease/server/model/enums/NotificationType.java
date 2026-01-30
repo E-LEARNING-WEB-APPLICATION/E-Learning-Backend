@@ -25,7 +25,8 @@ public enum NotificationType {
 
     // System
     PASSWORD_CHANGED,
-    SIGN_IN_OTP
+    SIGN_IN_OTP,
+    EMAIL_VERIFICATION
 
 }
 

@@ -632,3 +632,138 @@ public void validateOtp(UUID userId, OtpPurpose purpose, String otp) {
     }
 }
 ```
+
+
+-----------------------------
+# Issue 010: Database Updates Failing in `TransactionalEventListener` (AFTER_COMMIT)
+
+## Problem
+Database updates performed inside a listener annotated with:
+
+```java
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+```
+
+do not persist, even though the listener executes successfully and no errors are logged.
+
+---
+
+## Root Cause
+
+This behavior is caused by a **transaction lifecycle mismatch** in Spring:
+
+- **AFTER_COMMIT timing**: The listener runs *after* the original transaction has been committed.
+- **No active transaction**: At this point, the thread no longer has a writable transactional context.
+- **Silent non-persistence**: `repository.save()` may trigger a `SELECT`, but no `UPDATE` is flushed because there is no transaction to commit.
+
+As a result, database writes appear to succeed but are never persisted.
+
+---
+
+## Solutions
+
+### Solution 1: Synchronous Execution (Same Thread)
+
+If the listener is **not async**, it executes on the request thread.  
+A **new transaction must be explicitly started**.
+
+**Fix:** Use `REQUIRES_NEW` propagation.
+
+```java
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void handleBookingPaid(BookingPaidEvent event) {
+    Booking booking = bookingRepository.findById(event.bookingId()).orElseThrow();
+    booking.setInvoiceStatus(InvoiceStatus.GENERATED);
+    bookingRepository.save(booking);
+}
+```
+
+**When to use**
+- Lightweight logic
+- No external I/O
+- Acceptable to block the request thread
+
+---
+
+### Solution 2: Asynchronous Execution (Recommended)
+
+Best suited for **heavy, non-critical post-payment work**, such as:
+- Invoice PDF generation
+- File uploads (S3, GCS)
+- Email notifications
+
+This approach guarantees **payment safety**, **low response latency**, and **failure isolation**.
+
+---
+
+## Prerequisite: Enable Async Support
+
+```java
+@EnableAsync
+@Configuration
+public class AsyncConfig {
+}
+```
+
+---
+
+## Async Event Listener Implementation
+
+When `@Async` is used:
+- The listener runs on a background thread
+- The original transaction context is **not inherited**
+- A new transaction **must be started manually**
+
+```java
+@Async
+@Transactional
+@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+public void handleBookingPaid(BookingPaidEvent event) {
+    // Background invoice logic
+}
+```
+
+---
+
+## Why `@Transactional` Is Required
+
+- `AFTER_COMMIT` runs after the main transaction completes
+- No transaction is active by default
+- Any database write (e.g. `invoice_url`, `invoice_status`) requires a new transaction
+
+Adding `@Transactional` ensures:
+- A fresh transaction is created
+- Writes are properly flushed and committed
+- Failures do not impact the payment flow
+
+> If running synchronously, prefer  
+> `@Transactional(propagation = Propagation.REQUIRES_NEW)`
+
+---
+
+## Outcome
+
+**Data Integrity**
+- Payment and booking state commit first
+- Invoice updates persist independently
+
+**Performance**
+- Client receives *Payment Successful* immediately
+- Heavy work runs in the background
+
+**Reliability**
+- Invoice failures never affect payments
+- Listener logic is isolated and retryable
+
+---
+
+## Key Takeaway
+
+- `AFTER_COMMIT` is effectively **read-only** unless a new transaction is started
+- To safely write data:
+    - Use `@Transactional`
+    - Prefer `@Async` for non-blocking execution
+    - Use `REQUIRES_NEW` only for synchronous listeners
+
+This is the **recommended production pattern** for payments, invoicing, and post-transaction workflows.

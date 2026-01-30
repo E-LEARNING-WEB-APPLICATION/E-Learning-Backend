@@ -37,7 +37,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -55,7 +57,6 @@ public class InstructorServiceImpl implements InstructorService {
     private final TopicRepository topicRepository;
     private final TopicServiceImpl topicService;
     private final NotificationService notificationService;
-    private final WalletTransactionRepository walletTransactionRepository;
 
     @Override
     public ApiResponse addCourse(String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user) {
@@ -357,6 +358,74 @@ public class InstructorServiceImpl implements InstructorService {
         dto.setVideoUrl(topic.getVideo());
         dto.setTitle(topic.getTitle());
         return dto;
+    }
+
+    @Override
+    public List<CourseStudentDto> getCoursesData(UUID userId) {
+        List<CourseStudentDto> dtos = new ArrayList<>();
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        List<Course> courses = instructor.getCourses();
+
+        for(Course c : courses)
+        {
+            CourseStudentDto dto = new CourseStudentDto();
+            dto.setId(c.getId());
+            dto.setCourseName(c.getTitle());
+            dto.setImageUrl(c.getThumbnail());
+            dto.setStudents(c.getStudents().size());
+            dto.setDescription("Best "+ c.getCategory().getTitle() +" Course");
+            dtos.add(dto);
+        }
+
+        return dtos;
+
+    }
+
+    @Override
+    public List<StudentListDto> getStudentsList(UUID userId,UUID courseId) {
+        List<StudentListDto> dtos = new ArrayList<>();
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("Course Not Found"));
+
+        Set<Student> students = course.getStudents();
+
+        for(Student student : students )
+        {
+            StudentListDto dto = new StudentListDto();
+            dto.setId(student.getId());
+            if(student.getUserDetails().getGender() != null)
+            dto.setGender(student.getUserDetails().getGender().name());
+            if(student.getUserDetails().getDob() != null)
+            dto.setDob(student.getUserDetails().getDob().toString());
+            if(student.getUserDetails().getAddress() != null)
+            dto.setAddress(student.getUserDetails().getAddress().getCity());
+            dto.setFirstName(student.getUserDetails().getFirstName());
+            dto.setLastName(student.getUserDetails().getLastName());
+            dto.setPhoneNo(student.getUserDetails().getPhoneNo());
+            dto.setProfilePic(student.getUserDetails().getProfilePic());
+            Booking booking =  bookingRepository.findByStudentAndPurchasedCourse(student,course).orElseThrow(() -> new ResourceNotFoundException("Booking Not Found"));
+            dto.setCoursePurchasedOn(booking.getPaidAt().toLocalDate().toString());
+            dtos.add(dto);
+        }
+
+        return dtos;
+
     }
 
     @Override

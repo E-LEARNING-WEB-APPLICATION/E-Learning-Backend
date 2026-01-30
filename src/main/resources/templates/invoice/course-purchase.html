@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        body {
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: #f4f6f8;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .invoice-box {
+            max-width: 170mm;
+            margin: auto;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 10px;
+
+            /* PDF-safe replacement for box-shadow */
+            border: 1px solid #e0e0e0;
+        }
+
+        .header-table {
+            width: 100%;
+            margin-bottom: 24px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: 600;
+            color: #1976d2;
+        }
+
+        .logo-text {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1976d2;
+            letter-spacing: 0.5px;
+        }
+
+        .muted {
+            color: #777;
+            font-size: 12px;
+        }
+
+        .section {
+            margin-top: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table th {
+            background: #e3f2fd;
+            color: #0d47a1;
+            font-weight: 600;
+            padding: 10px;
+            font-size: 13px;
+            border-bottom: 2px solid #bbdefb;
+        }
+
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+
+        .totals-table {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .totals-table td {
+            padding: 6px 0;
+        }
+
+        .totals-label {
+            text-align: right;
+            color: #555;
+        }
+
+        .totals-value {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        .grand-total {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+
+        .footer {
+            margin-top: 36px;
+            padding-top: 12px;
+            border-top: 1px dashed #ccc;
+            text-align: center;
+            font-size: 11px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+<div class="invoice-box">
+
+    <!-- Header -->
+    <table class="header-table">
+        <tr>
+            <td>
+                <div class="title">Invoice</div>
+                <div class="muted">
+                    Invoice #:
+                    <span th:text="${invoice?.invoiceNumber ?: 'N/A'}"></span><br/>
+                    Date:
+                    <span th:text="${invoice?.invoiceDate != null
+                        ? #temporals.format(invoice.invoiceDate, 'dd MMM yyyy')
+                        : 'N/A'}"></span>
+                </div>
+            </td>
+
+            <!-- Platform Logo Text -->
+            <td style="text-align:right;">
+                <div class="logo-text"
+                     th:text="${invoice?.platformName ?: 'Platform Name'}">
+                </div>
+                <div class="muted" style="margin-top:4px;">
+                    <span th:text="${invoice?.platformAddress ?: 'Address not available'}"></span><br/>
+                    <span th:text="${invoice?.platformEmail ?: 'support@example.com'}"></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Billed To -->
+    <div class="section">
+        <div class="section-title">Billed To</div>
+        <span th:text="${invoice?.studentFullName ?: 'Customer Name'}"></span><br/>
+        <span th:text="${invoice?.studentEmail ?: 'customer@email.com'}"></span>
+    </div>
+
+    <!-- Course Details -->
+    <div class="section">
+        <table>
+            <thead>
+            <tr>
+                <th>Description</th>
+                <th>Instructor</th>
+                <th style="text-align:right;">Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td th:text="${invoice?.courseTitle ?: 'Course Title'}"></td>
+                <td th:text="${invoice?.instructorName ?: 'Instructor Name'}"></td>
+                <td style="text-align:right;">
+                    <span th:text="${invoice?.currency ?: '₹'}"></span>
+                    <span th:text="${invoice?.coursePrice ?: '0.00'}"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="section">
+        <table class="totals-table">
+            <tr>
+                <td class="totals-label">Subtotal</td>
+                <td class="totals-value">
+                    <span th:text="${invoice?.currency ?: '₹'}"></span>
+                    <span th:text="${invoice?.subTotal ?: '0.00'}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="totals-label">Discount</td>
+                <td class="totals-value">
+                    <span th:text="${invoice?.currency ?: '₹'}"></span>
+                    <span th:text="${invoice?.discountAmount ?: '0.00'}"></span>
+                </td>
+            </tr>
+            <tr>
+                <td class="totals-label grand-total">Total Paid</td>
+                <td class="totals-value grand-total">
+                    <span th:text="${invoice?.currency ?: '₹'}"></span>
+                    <span th:text="${invoice?.grandTotal ?: '0.00'}"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        Payment Method:
+        <span th:text="${invoice?.paymentMethod ?: 'N/A'}"></span><br/>
+        Order ID:
+        <span th:text="${invoice?.orderId ?: 'N/A'}"></span>
+    </div>
+
+</div>
+</body>
+</html>

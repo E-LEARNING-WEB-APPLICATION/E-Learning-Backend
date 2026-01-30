@@ -5,23 +5,18 @@ import com.learnease.server.dto.auth.InstructorRegisterRequestDto;
 import com.learnease.server.dto.auth.LoginRequestDto;
 import com.learnease.server.dto.auth.LoginResponseDto;
 import com.learnease.server.dto.auth.StudentRegisterRequestDto;
+import com.learnease.server.dto.emailverification.SendEmailVerificationOtpRequestDto;
+import com.learnease.server.dto.emailverification.VerifyEmailOtpRequestDto;
 import com.learnease.server.dto.passwordreset.PasswordResetConfirmRequestDto;
 import com.learnease.server.dto.passwordreset.PasswordResetOtpRequestDto;
-import com.learnease.server.model.UserAuth;
 import com.learnease.server.service.AuthService;
-import com.learnease.server.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 
 @RestController
@@ -89,5 +84,27 @@ public class AuthController {
         );
         return ResponseEntity.ok(response);
     }
+
+
+    @Operation(summary = "Send Email Verification OTP")
+    @PostMapping("/email/verify/otp")
+    public ResponseEntity<ApiResponse> sendEmailVerificationOtp(
+            @Valid @RequestBody SendEmailVerificationOtpRequestDto request
+    ) {
+        ApiResponse response =
+                authService.sendEmailVerificationOtp(request.getEmail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Verify Email OTP")
+    @PostMapping("/email/verify")
+    public ResponseEntity<ApiResponse> verifyEmailOtp(
+            @Valid @RequestBody VerifyEmailOtpRequestDto request
+    ) {
+        ApiResponse response =
+                authService.verifyEmailOtp(request.getEmail(), request.getOtp());
+        return ResponseEntity.ok(response);
+    }
+
 
 }
