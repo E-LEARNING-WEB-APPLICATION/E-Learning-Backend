@@ -23,7 +23,7 @@ public class EmailEvent {
 
     private Map<String, Object> data;
 
-//    private List<EmailAttachment> attachments;
+    private Map<String, String> attachments;
 
     private Map<String, Object> meta;
 }
