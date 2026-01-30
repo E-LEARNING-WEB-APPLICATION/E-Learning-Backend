@@ -32,4 +32,24 @@ public interface FeedbackRepository extends JpaRepository<Feedback , UUID> {
         LIMIT :top
         """)
     List<CourseRatingDTO> findTopCoursesByRating(@Param("top") int top);
+
+    @Query("""
+        SELECT
+            COALESCE(AVG(f.rating), 0)
+        FROM Feedback f
+        WHERE f.course.instructor.id = :instructorId
+        """)
+    Double findRatingSummaryByInstructorId(
+            @Param("instructorId") UUID instructorId
+    );
+    @Query("""
+        SELECT
+            COUNT(f.id)
+        FROM Feedback f
+        WHERE f.course.instructor.id = :instructorId
+        """)
+    Long findTotalRatingByInstructorId(
+            @Param("instructorId") UUID instructorId
+    );
+
 }

@@ -4,6 +4,7 @@ package com.learnease.server.controller;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.instructor.instructorDashboard.CategoryCoursesCountDto;
 import com.learnease.server.dto.instructor.instructorDashboard.CourseStudentCountDto;
+import com.learnease.server.dto.instructor.instructorDashboard.DashboardStatisticsDto;
 import com.learnease.server.service.InstructorDashBoardStatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -51,5 +52,16 @@ public class InstructorStatisticsController {
         List<CategoryCoursesCountDto> list = instructorDashBoardStatisticsService.getCoursesPerCategory(authId);
 
         return ResponseEntity.status(HttpStatus.FOUND).body(list);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Api to fetch the statistics of instructor")
+    @GetMapping("/stats")
+    public ResponseEntity<?> getOverallStat(Authentication authentication){
+        JWTDTO jwtdto = (JWTDTO) authentication.getPrincipal();
+        UUID authId = jwtdto.getUserId();
+
+        DashboardStatisticsDto dashboardStatisticsDto = instructorDashBoardStatisticsService.getOverAllStat(authId);
+        return ResponseEntity.status(HttpStatus.FOUND).body(dashboardStatisticsDto);
     }
 }

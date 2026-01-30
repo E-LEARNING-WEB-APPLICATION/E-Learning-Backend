@@ -233,4 +233,24 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     List<MonthlyStudentEnrollmentDTO> findCourseStudentEnrollmentByMonth(
             @Param("startDate") LocalDateTime startDate,
             @Param("courseId") UUID courseId);
+
+    @Query("""
+    SELECT COUNT(s.id)
+    FROM Student s
+    WHERE s.id IN (
+        SELECT b.student.id
+        FROM Booking b
+        WHERE b.instructor.id = :instructorId
+          AND b.status = :status
+        GROUP BY b.student.id
+        HAVING MIN(b.createdAt) >= :startDate
+    )
+    """)
+    Long countTrulyNewStudentsForInstructorSince(
+            UUID instructorId,
+            BookingStatus status,
+            LocalDateTime startDate
+    );
+
+
 }
