@@ -14,10 +14,7 @@ import com.learnease.server.model.Student;
 import com.learnease.server.model.UserAuth;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.*;
-import com.learnease.server.repository.AdminRepository;
-import com.learnease.server.repository.InstructorRepository;
-import com.learnease.server.repository.StudentRepository;
-import com.learnease.server.repository.UserAuthRepository;
+import com.learnease.server.repository.*;
 import com.learnease.server.service.AuthService;
 import com.learnease.server.service.EmailService;
 import com.learnease.server.service.NotificationService;
@@ -32,6 +29,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     private final OtpService otpService;
+    private final UserDetailRepository userDetailRepository;
 
 
     @Override
@@ -282,9 +281,25 @@ public class AuthServiceImpl implements AuthService {
         );
 
         userAuth.setEmailVerified(true);
+        UserDetails userDetails = userDetailRepository.findByUserAuth_Id(userAuth.getId()).orElseThrow(()->new UserNotFoundException("User Not Found"));
 
         if (userAuth.getRole() == Role.STUDENT) {
             userAuth.setStatus(Status.ACTIVE);
+                       emailService.sendEmail(
+                        EmailEvent.builder()
+                            .eventType(NotificationType.STUDENT_REGISTERED)
+                            .to(List.of(userAuth.getEmail()))
+                            .subject("LearnEase: Registration Successful!")
+                            .data(Map.of(
+                                    "firstName", userDetails.getFirstName(),
+                                    "email", userAuth.getEmail(),
+                                    "platformName", "LearnEase",
+                                    "supportEmail", "support@learnease.com",
+                                    "year", LocalDate.now().getYear()
+                            ))
+                            .meta(Map.of())
+                            .build()
+            );
         }
 
         userAuthRepository.save(userAuth);
@@ -295,6 +310,20 @@ public class AuthServiceImpl implements AuthService {
         );
 
         if (userAuth.getRole() == Role.INSTRUCTOR) {
+            emailService.sendEmail(
+                    EmailEvent.builder()
+                            .eventType(NotificationType.STUDENT_REGISTERED)
+                            .to(List.of(userAuth.getEmail()))
+                            .subject("LearnEase: Registration Successful!")
+                            .data(Map.of(
+                                    "instructorName", userDetails.getFirstName(),
+                                    "platformName", "LearnEase",
+                                    "supportEmail", "support@learnease.com",
+                                    "year", LocalDate.now().getYear()
+                            ))
+                            .meta(Map.of())
+                            .build()
+            );
 
             Instructor instructor = instructorRepository
                     .findByUserDetails_UserAuth_Id(userAuth.getId())
