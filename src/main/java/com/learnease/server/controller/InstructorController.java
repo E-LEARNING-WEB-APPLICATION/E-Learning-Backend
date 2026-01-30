@@ -7,6 +7,7 @@ import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
 import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
+import com.learnease.server.dto.instructor.instructorDashboard.CourseStudentCountDto;
 import com.learnease.server.model.Course;
 import com.learnease.server.service.InstructorService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -220,6 +221,24 @@ public class InstructorController {
     {
         TopicResponseDto topic = instructorService.getTopic(topicId);
         return ResponseEntity.status(200).body(topic);
+    }
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("getData")
+    public ResponseEntity<List<CourseStudentDto>> getCoursesAndStudents(@AuthenticationPrincipal JWTDTO jwtdto)
+    {
+        List<CourseStudentDto> dtos = instructorService.getCoursesData(jwtdto.getUserId());
+        return ResponseEntity.ok().body(dtos);
+    }
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping("getStudentsLists/{courseId}")
+    public ResponseEntity<List<StudentListDto>> getStudentList(@PathVariable UUID courseId ,@AuthenticationPrincipal JWTDTO jwtdto)
+    {
+        List<StudentListDto> dtos = instructorService.getStudentsList(jwtdto.getUserId(),courseId);
+        return ResponseEntity.ok().body(dtos);
     }
 
 }
