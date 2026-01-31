@@ -57,6 +57,8 @@ public class InstructorServiceImpl implements InstructorService {
     private final TopicRepository topicRepository;
     private final TopicServiceImpl topicService;
     private final NotificationService notificationService;
+    private final BookingRepository bookingRepository;
+    private final WalletTransactionRepository walletTransactionRepository;
 
     @Override
     public ApiResponse addCourse(String courseName, String courseDesc, double fees, int discountPercentage, int hour, UUID categoryId, MultipartFile image, MultipartFile video, JWTDTO user) {
