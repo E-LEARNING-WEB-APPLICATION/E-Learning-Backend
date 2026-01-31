@@ -25,9 +25,9 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     );
 
     @Query("""
-    select COALESCE(sum(b.pricePaid), 0)  from Booking b
+    select COALESCE(sum(b.pricePaid), 0)  from Booking b where b.status=:status
 """)
-    BigDecimal findSumPricePaid();
+    BigDecimal findSumPricePaid(@Param("status") BookingStatus status);
 
     @Query("""
         SELECT new com.learnease.server.dto.admin.MonthlyRevenueDTO(

@@ -6,12 +6,15 @@ import com.learnease.server.dto.admin.EnrolledStudentAdminDTO;
 import com.learnease.server.dto.auth.AdminRegisterRequest;
 import com.learnease.server.dto.auth.AdminUpdateProfileRequest;
 import com.learnease.server.dto.auth.PasswordUpdateDto;
+import com.learnease.server.dto.notification.EmailEvent;
 import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.model.*;
+import com.learnease.server.model.enums.NotificationType;
 import com.learnease.server.model.enums.Role;
 import com.learnease.server.model.enums.Status;
 import com.learnease.server.repository.*;
 import com.learnease.server.service.AdminService;
+import com.learnease.server.service.EmailService;
 import com.learnease.server.util.mappers.AddressMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +29,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -43,6 +48,7 @@ public class AdminServiceImpl implements AdminService {
     private final StudentRepository studentRepository;
     private final BookingRepository bookingRepository;
     private final CommissionConfigRepository commissionConfigRepository;
+    private final EmailService emailService;
 
     @Override
     public Admin registerAdmin(UUID creatorAdminID, AdminRegisterRequest newUser, MultipartFile profilePic) {
@@ -141,6 +147,22 @@ public class AdminServiceImpl implements AdminService {
         instructor.getUserDetails().getUserAuth().setStatus(Status.ACTIVE);
         instructor.setProcessedBy(admin);
         instructor.setProcessedAt(LocalDateTime.now());
+
+        //send email to instructor
+        emailService.sendEmail(
+                EmailEvent.builder()
+                        .eventType(NotificationType.INSTRUCTOR_APPROVED)
+                        .to(List.of(instructor.getUserDetails().getUserAuth().getEmail()))
+                        .subject("LearnEase: Registration Successful!")
+                        .data(Map.of(
+                                "instructorName", instructor.getUserDetails().getFirstName(),
+                                "platformName", "LearnEase",
+                                "supportEmail", "support@learnease.com",
+                                "year", LocalDate.now().getYear()
+                        ))
+                        .meta(Map.of())
+                        .build()
+        );
         return instructor;
     }
 
@@ -157,6 +179,22 @@ public class AdminServiceImpl implements AdminService {
         instructor.getUserDetails().getUserAuth().setStatus(Status.REJECTED);
         instructor.setProcessedBy(admin);
         instructor.setProcessedAt(LocalDateTime.now());
+
+        //send email to instructor
+        emailService.sendEmail(
+                EmailEvent.builder()
+                        .eventType(NotificationType.INSTRUCTOR_REJECTED)
+                        .to(List.of(instructor.getUserDetails().getUserAuth().getEmail()))
+                        .subject("LearnEase: Registration Successful!")
+                        .data(Map.of(
+                                "instructorName", instructor.getUserDetails().getFirstName(),
+                                "platformName", "LearnEase",
+                                "supportEmail", "support@learnease.com",
+                                "year", LocalDate.now().getYear()
+                        ))
+                        .meta(Map.of())
+                        .build()
+        );
         return instructor;
     }
 

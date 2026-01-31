@@ -86,7 +86,7 @@ public interface AdminCourseAnalyticsRepository extends JpaRepository<Course, UU
 
     Page<AdminCourseOverviewProjection> fetchCourseOverview(
             @Param("recentDate") LocalDateTime recentDate,
-            @Param("status") BookingStatus status,
+            @Param("status") String status,
             Pageable pageable
     );
 
