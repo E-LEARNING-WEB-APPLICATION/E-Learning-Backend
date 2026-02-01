@@ -52,6 +52,19 @@ public class WishlistController {
                 .body(new ApiResponse(true, "Course removed from wishlist"));
     }
 
+    @Operation(summary = "mark course purchased")
+    @PatchMapping("/{courseId}/purchased")
+    public ResponseEntity<ApiResponse> markCoursePurchased(
+            @PathVariable UUID courseId,
+            @AuthenticationPrincipal JWTDTO jwtdto
+    ) {
+        wishlistService.markCoursePurchased(jwtdto.getUserId(), courseId);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(new ApiResponse(true, "Course removed from wishlist"));
+    }
+
     @Operation(summary = "Get wishlist")
     @GetMapping
     public ResponseEntity<List<WishlistResponseDto>> getWishlist(

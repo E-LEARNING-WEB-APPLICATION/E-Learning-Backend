@@ -16,27 +16,24 @@ public interface WishlistRepository extends JpaRepository<Wishlist , UUID> {
 
     boolean existsByStudentAndCourse(Student student, Course course);
 
-    List<Wishlist> findByStudent(Student student);
+    List<Wishlist> findByStudentAndIsPurchasedFalse(Student student);
 
-    long countByStudent(Student student);
+    long countByStudentAndIsPurchasedFalse(Student student);
 
     void deleteByStudentAndCourse(Student student, Course course);
 
+    Wishlist findByStudentAndCourse(Student student, Course course);
+
     @Query("""
-    SELECT (COUNT(DISTINCT b.id) * 100.0) / NULLIF(COUNT(DISTINCT w.id), 0)
-    FROM Wishlist w
-    LEFT JOIN Booking b ON w.student.id = b.student.id
-        AND w.course.id = b.purchasedCourse.id
-        AND b.status = com.learnease.server.model.enums.BookingStatus.PAID
+    SELECT (COUNT(f) FILTER (WHERE f.isPurchased = true) * 100.0) / NULLIF(COUNT(f), 0)
+    FROM Wishlist f
     """)
     Double findOverallWishlistToBookingConversionRate();
 
     @Query("""
-    SELECT (COUNT(DISTINCT b.id) * 100.0) / NULLIF(COUNT(DISTINCT w.id), 0)
+    SELECT (SUM(CASE WHEN w.isPurchased = true THEN 1.0 ELSE 0.0 END) * 100.0) /
+           NULLIF(COUNT(w), 0)
     FROM Wishlist w
-    LEFT JOIN Booking b ON w.student.id = b.student.id
-        AND w.course.id = b.purchasedCourse.id
-        AND b.status = com.learnease.server.model.enums.BookingStatus.PAID
     WHERE w.course.id = :courseId
     """)
     Double findOverallWishlistToBookingConversionRateByCourse(@Param("courseId") UUID courseId);
@@ -45,15 +42,12 @@ public interface WishlistRepository extends JpaRepository<Wishlist , UUID> {
     SELECT new com.learnease.server.dto.admin.CourseConversionDTO(
         c.id,
         c.title,
-        (COUNT(DISTINCT b.id) * 100.0) / NULLIF(COUNT(DISTINCT w.id), 0)
+        (SUM(CASE WHEN w.isPurchased = true THEN 1.0 ELSE 0.0 END) * 100.0) / COUNT(w)
     )
-    FROM Course c
-    JOIN Wishlist w ON w.course.id = c.id
-    LEFT JOIN Booking b ON b.purchasedCourse.id = c.id 
-        AND b.student.id = w.student.id
-        AND b.status = com.learnease.server.model.enums.BookingStatus.PAID
+    FROM Wishlist w
+    JOIN w.course c
     GROUP BY c.id, c.title
-    ORDER BY (COUNT(DISTINCT b.id) * 100.0) / NULLIF(COUNT(DISTINCT w.id), 0) DESC
+    ORDER BY (SUM(CASE WHEN w.isPurchased = true THEN 1.0 ELSE 0.0 END) * 100.0) / COUNT(w) DESC
     """)
     List<CourseConversionDTO> findCourseRankingByConversionRate(Pageable pageable);
 }
