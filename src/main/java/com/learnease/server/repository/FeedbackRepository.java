@@ -61,6 +61,14 @@ public interface FeedbackRepository extends JpaRepository<Feedback , UUID> {
         """)
     List<IRatingCount> findRatingDistributionByCourse(@Param("courseId") UUID courseId);
 
+    @Query("""
+        SELECT ceil(f.rating) as rating, count(f) as count
+        FROM Feedback f
+        WHERE f.course.instructor.id = :instructorId
+        GROUP BY ceil(f.rating)
+        """)
+    List<IRatingCount> findRatingDistributionByInstructor(@Param("instructorId") UUID instructorId);
+
     // This nested interface acts as the DTO
     interface IRatingCount {
         Double getRating();

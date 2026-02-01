@@ -5,6 +5,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.admin.InstructorSummaryDTO;
 import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.dto.instructor.instructorDashboard.CourseStudentCountDto;
@@ -247,6 +248,11 @@ public class InstructorController {
         UUID authId = jwtdto.getUserId();
         ApiResponse apiResponse = instructorService.withdrawMoney(authId);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(apiResponse);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<InstructorSummaryDTO>> getInstructorSearchList(){
+        return ResponseEntity.ok(instructorService.getAllInstructorsSummary());
     }
 
 }

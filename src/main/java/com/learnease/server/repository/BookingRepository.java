@@ -79,6 +79,23 @@ public interface BookingRepository extends JpaRepository<Booking , UUID> {
     List<CourseRevenueDTO> findTopCourseByRevenue(@Param("status") BookingStatus status, Pageable pageable);
 
     @Query("""
+            Select new com.learnease.server.dto.admin.CourseRevenueDTO(
+            b.purchasedCourse.id,
+            b.purchasedCourse.title,
+            sum(b.pricePaid)
+            )
+            from Booking b
+            where status= :status
+            and b.instructor.id =:instructorId
+            group by b.purchasedCourse.id, b.purchasedCourse.title
+            order by sum(b.pricePaid) desc
+            """)
+    List<CourseRevenueDTO> findTopCourseByRevenueAndInstructorId(
+            @Param("status") BookingStatus status,
+            @Param("instructorId") UUID instructorId,
+            Pageable pageable);
+
+    @Query("""
         SELECT new com.learnease.server.dto.admin.InstructorMonthlyRevenueDTO(
             b.instructor.id,
             CONCAT(b.instructor.userDetails.firstName," ", b.instructor.userDetails.lastName) ,
