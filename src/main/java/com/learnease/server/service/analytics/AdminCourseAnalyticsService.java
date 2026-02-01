@@ -1,10 +1,10 @@
 package com.learnease.server.service.analytics;
 
-import com.learnease.server.dto.admin.AdminCourseOverviewDto;
-import com.learnease.server.dto.admin.CategoryDistributionDTO;
-import com.learnease.server.dto.admin.CourseRatingDTO;
+import com.learnease.server.dto.admin.*;
+import com.learnease.server.model.Course;
 import com.learnease.server.model.enums.BookingStatus;
 import com.learnease.server.repository.AdminCourseAnalyticsRepository;
+import com.learnease.server.repository.BookingRepository;
 import com.learnease.server.repository.CategoryRepository;
 import com.learnease.server.repository.FeedbackRepository;
 import com.learnease.server.util.enums.CourseSortField;
@@ -26,6 +26,7 @@ public class AdminCourseAnalyticsService {
     private final AdminCourseAnalyticsRepository repository;
     private final CategoryRepository categoryRepository;
     private final FeedbackRepository feedbackRepository;
+    private final BookingRepository bookingRepository;
 
     public Page<AdminCourseOverviewDto> getCoursesOverview(
             int page,
@@ -85,6 +86,10 @@ public class AdminCourseAnalyticsService {
 
     public List<CourseRatingDTO> getTopCourseRatings(int top){
         return feedbackRepository.findTopCoursesByRating(top);
+    }
+
+    public List<CourseRevenueDTO> getTopCoursesByRevenue(int top){
+        return bookingRepository.findTopCourseByRevenue(BookingStatus.PAID, Pageable.ofSize(top));
     }
 }
 

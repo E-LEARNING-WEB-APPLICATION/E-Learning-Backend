@@ -116,6 +116,13 @@ public class AdminStatisticsController {
         return ResponseEntity.ok(courseAnalyticsService.getTopCourseRatings(top));
     }
 
+    @GetMapping("/course/by-revenue")
+    public ResponseEntity<List<CourseRevenueDTO>> getTopCoursesByRevenue(
+            @RequestParam(required = false, defaultValue = "10") int top
+    ){
+        return ResponseEntity.ok(courseAnalyticsService.getTopCoursesByRevenue(top));
+    }
+
     @GetMapping("/revenue")
     public ResponseEntity<BigDecimal> getTotalRevenue(){
         return ResponseEntity.ok(statisticsService.getTotalRevenue());
