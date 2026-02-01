@@ -431,6 +431,27 @@ public class InstructorServiceImpl implements InstructorService {
     }
 
     @Override
+    public boolean setCoursePublished(UUID courseId, boolean isPublished, UUID userId) {
+
+        UserDetails userDetails = userDetailRepository
+                .findByUserAuth_Id(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Instructor instructor = instructorRepository
+                .findByUserDetails_Id(userDetails.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Instructor Not Found"));
+
+        Course course = courseRepository.findById(courseId).orElseThrow(() -> new ResourceNotFoundException("Course Not Found"));
+        if(!instructor.getId().equals(course.getInstructor().getId()))
+        {
+          throw new AuthorizationDeniedException("Can't access Another Instructor Course");
+        }
+        course.setPublished(isPublished);
+        courseRepository.save(course);
+        return course.isPublished();
+    }
+
+    @Override
     public ApiResponse withdrawMoney(UUID authId) {
         Instructor instructor = instructorRepository.findByUserDetails_UserAuth_Id(authId)
                 .orElseThrow(()->new UserNotFoundException("No such Instructor Exist"));

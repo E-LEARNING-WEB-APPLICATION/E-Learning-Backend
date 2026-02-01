@@ -48,4 +48,6 @@ public interface InstructorService {
     List<CourseStudentDto> getCoursesData(UUID userId);
 
     List<StudentListDto> getStudentsList(UUID userId,UUID courseId) ;
+
+    boolean setCoursePublished(UUID courseId, boolean isPublished, UUID userId);
 }
