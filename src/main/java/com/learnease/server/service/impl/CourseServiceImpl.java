@@ -12,6 +12,7 @@ import com.learnease.server.model.Course;
 import com.learnease.server.model.Student;
 import com.learnease.server.model.UserDetails;
 import com.learnease.server.model.enums.BookingStatus;
+import com.learnease.server.projection.course.DashboardCoursesProjection;
 import com.learnease.server.repository.*;
 import com.learnease.server.service.CourseService;
 import com.learnease.server.util.mappers.CourseMapper;
@@ -21,6 +22,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,6 +58,13 @@ public class CourseServiceImpl implements CourseService {
     public List<DashboardCoursesResponseDto> getAllCourses() {
         return courseRepository.findDashboardCourses()
                 .stream()
+                .sorted(
+                        Comparator.<DashboardCoursesProjection, Double>comparing(
+                                DashboardCoursesProjection::getRating,
+                                Comparator.nullsLast(Double::compareTo)
+                        ).reversed()
+                )
+                .limit(10)
                 .map(p -> new DashboardCoursesResponseDto(
                         p.getId(),
                         p.getCategoryId(),
@@ -69,6 +78,7 @@ public class CourseServiceImpl implements CourseService {
                 ))
                 .toList();
     }
+
 
     @Override
     public List<DashboardCoursesResponseDto> getCategoryCourses(UUID categoryId) {

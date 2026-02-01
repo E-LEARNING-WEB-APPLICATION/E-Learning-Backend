@@ -35,10 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -132,27 +129,33 @@ public class InstructorServiceImpl implements InstructorService {
     public List<DashboardInstructorResponseDto> getAllInstructors() {
         return instructorRepository.findAll()
                 .stream()
-                .map(i-> new DashboardInstructorResponseDto(
+                .sorted(
+                        Comparator.comparingInt(
+                                (Instructor i) -> i.getCourses().size()
+                        ).reversed()
+                )
+                .limit(10)
+                .map(i -> new DashboardInstructorResponseDto(
                         i.getId(),
-                        i.getUserDetails().getFirstName() +" "+ i.getUserDetails().getLastName(),
+                        i.getUserDetails().getFirstName() + " " +
+                                i.getUserDetails().getLastName(),
                         i.getBio(),
                         i.getSpecializations().stream()
-                                .map(s-> s.getTitle())
+                                .map(s -> s.getTitle())
                                 .toList(),
                         i.getCourses().size(),
                         i.getCourses().stream()
                                 .mapToInt(c -> c.getStudents().size())
                                 .sum(),
                         i.getUserDetails().getProfilePic(),
-                        i.getUserDetails()
-                                .getUserAuth()
-                                .getEmail(),
+                        i.getUserDetails().getUserAuth().getEmail(),
                         i.getGitHubUrl(),
                         i.getLinkedInUrl(),
                         i.getTwitterUrl()
-
-                )).toList();
+                ))
+                .toList();
     }
+
 
     @Override
     public ApiResponse addSection(UUID userId, AddSectionReqDto reqDto) {
