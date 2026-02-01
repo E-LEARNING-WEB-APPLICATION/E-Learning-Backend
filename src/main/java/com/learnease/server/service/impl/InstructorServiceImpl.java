@@ -4,6 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.admin.InstructorSummaryDTO;
 import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import com.learnease.server.dto.notification.SendNotificationDTO;
@@ -11,15 +12,12 @@ import com.learnease.server.exception.custom_exception.FileStorageException;
 import com.learnease.server.exception.custom_exception.ResourceNotFoundException;
 import com.learnease.server.exception.custom_exception.UserNotFoundException;
 import com.learnease.server.model.*;
+import com.learnease.server.model.enums.*;
 import com.learnease.server.repository.*;
 import com.learnease.server.model.Category;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.Instructor;
 import com.learnease.server.model.UserDetails;
-import com.learnease.server.model.enums.NotificationPriority;
-import com.learnease.server.model.enums.NotificationSubjectType;
-import com.learnease.server.model.enums.NotificationType;
-import com.learnease.server.model.enums.Role;
 import com.learnease.server.repository.CategoryRepository;
 import com.learnease.server.repository.CourseRepository;
 import com.learnease.server.repository.InstructorRepository;
@@ -431,6 +429,11 @@ public class InstructorServiceImpl implements InstructorService {
 
         return dtos;
 
+    }
+
+    @Override
+    public List<InstructorSummaryDTO> getAllInstructorsSummary() {
+        return instructorRepository.findAllInstructorSummary(Status.ACTIVE);
     }
 
     @Override

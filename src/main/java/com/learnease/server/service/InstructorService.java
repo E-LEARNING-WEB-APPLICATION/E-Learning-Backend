@@ -4,6 +4,7 @@ import com.learnease.server.dto.ApiResponse;
 import com.learnease.server.dto.CourseInstructorResponseDto;
 import com.learnease.server.dto.CoursesDto;
 import com.learnease.server.dto.JWTDTO;
+import com.learnease.server.dto.admin.InstructorSummaryDTO;
 import com.learnease.server.dto.course.*;
 import com.learnease.server.dto.instructor.DashboardInstructorResponseDto;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +49,8 @@ public interface InstructorService {
     List<CourseStudentDto> getCoursesData(UUID userId);
 
     List<StudentListDto> getStudentsList(UUID userId,UUID courseId) ;
+
+    List<InstructorSummaryDTO> getAllInstructorsSummary();
 
     boolean setCoursePublished(UUID courseId, boolean isPublished, UUID userId);
 }
