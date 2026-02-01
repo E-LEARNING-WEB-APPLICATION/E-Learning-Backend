@@ -579,6 +579,28 @@ List<Object[]> debugNativeQuery(@Param("status") String status, @Param("sortBy")
     }
 ```
 
+```java
+
+    @Query("""
+            SELECT ceil(f.rating), count(f)
+            FROM Feedback f
+            WHERE f.course.id = :courseId
+            GROUP BY ceil(f.rating)
+            """)
+    List<Object[]> findRawRatingDistribution(@Param("courseId") UUID courseId);
+            
+
+    public void testMethod(){
+        List<Object[]> results = feedbackRepository.findRawRatingDistribution(UUID.fromString("1489f2ae-a33e-4700-9280-b666d1d87189"));
+        for (Object[] row : results) {
+            log.info("in the test method");
+            log.debug("in the debug");
+            log.debug("Column 0 (Rating) Type: " + row[0].getClass().getName());
+            log.debug("Column 1 (Count) Type: " + row[1].getClass().getName());
+        }
+    }
+```
+
 ## Issue 009: OTP attempt count not incrementing on invalid OTP
 
 ### Problem

@@ -3,13 +3,11 @@ package com.learnease.server.service.analytics;
 import com.learnease.server.dto.admin.*;
 import com.learnease.server.model.Course;
 import com.learnease.server.model.enums.BookingStatus;
-import com.learnease.server.repository.AdminCourseAnalyticsRepository;
-import com.learnease.server.repository.BookingRepository;
-import com.learnease.server.repository.CategoryRepository;
-import com.learnease.server.repository.FeedbackRepository;
+import com.learnease.server.repository.*;
 import com.learnease.server.util.enums.CourseSortField;
 import com.learnease.server.util.mappers.CourseSortMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +15,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -27,6 +27,7 @@ public class AdminCourseAnalyticsService {
     private final CategoryRepository categoryRepository;
     private final FeedbackRepository feedbackRepository;
     private final BookingRepository bookingRepository;
+    private final WishlistRepository wishlistRepository;
 
     public Page<AdminCourseOverviewDto> getCoursesOverview(
             int page,
@@ -91,5 +92,27 @@ public class AdminCourseAnalyticsService {
     public List<CourseRevenueDTO> getTopCoursesByRevenue(int top){
         return bookingRepository.findTopCourseByRevenue(BookingStatus.PAID, Pageable.ofSize(top));
     }
+
+    public List<RatingCountDTO> getCourseRatingDistribution(UUID courseId){
+        return feedbackRepository.findRatingDistributionByCourse(courseId).stream()
+                .map(res -> new RatingCountDTO(res.getRating(), res.getCount()))
+                .toList();
+    }
+
+
+    public Double getConversionRate() {
+        Double rate = wishlistRepository.findOverallWishlistToBookingConversionRate();
+        return (rate != null) ? rate : 0.0;
+    }
+
+    public Double getConversionRate(UUID courseId) {
+        Double rate = wishlistRepository.findOverallWishlistToBookingConversionRateByCourse(courseId);
+        return (rate != null) ? rate : 0.0;
+    }
+
+    public List<CourseConversionDTO> getTopCoursesByConversionRate(int top){
+        return wishlistRepository.findCourseRankingByConversionRate(Pageable.ofSize(top));
+    }
+
 }
 
