@@ -9,8 +9,6 @@ import com.learnease.server.repository.InstructorRepository;
 import com.learnease.server.service.InstructorStatisticsService;
 import com.learnease.server.util.enums.InstructorSortBy;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class InstructorStatisticsServiceImpl implements InstructorStatisticsService {
-    private static final Log log = LogFactory.getLog(InstructorStatisticsServiceImpl.class);
     private final BookingRepository bookingRepository;
     private final InstructorRepository instructorRepository;
     private final FeedbackRepository feedbackRepository;
