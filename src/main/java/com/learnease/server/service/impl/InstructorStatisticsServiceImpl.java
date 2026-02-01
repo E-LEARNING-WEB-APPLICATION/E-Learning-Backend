@@ -1,24 +1,26 @@
 package com.learnease.server.service.impl;
 
-import com.learnease.server.dto.admin.InstructorEnrollmentsDTO;
-import com.learnease.server.dto.admin.InstructorLeaderboardDTO;
-import com.learnease.server.dto.admin.InstructorMonthlyRevenueDTO;
+import com.learnease.server.dto.admin.*;
+import com.learnease.server.exception.custom_exception.BadClientRequestException;
 import com.learnease.server.model.enums.BookingStatus;
 import com.learnease.server.repository.BookingRepository;
+import com.learnease.server.repository.FeedbackRepository;
+import com.learnease.server.repository.InstructorRepository;
 import com.learnease.server.service.InstructorStatisticsService;
 import com.learnease.server.util.enums.InstructorSortBy;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class InstructorStatisticsServiceImpl implements InstructorStatisticsService {
-    private static final Log log = LogFactory.getLog(InstructorStatisticsServiceImpl.class);
     private final BookingRepository bookingRepository;
+    private final InstructorRepository instructorRepository;
+    private final FeedbackRepository feedbackRepository;
 
     @Override
     public List<InstructorMonthlyRevenueDTO> getTopInstructorByMonthlyRevenue(int top) {
@@ -28,6 +30,17 @@ public class InstructorStatisticsServiceImpl implements InstructorStatisticsServ
     @Override
     public List<InstructorEnrollmentsDTO> getTopInstructorByEnrollments(int top){
         return bookingRepository.findTopInstructorsByEnrollments(BookingStatus.PAID, top);
+    }
+
+    public List<CourseRevenueDTO> getTopCoursesByRevenue(UUID instructorId, int top){
+        instructorRepository.findById(instructorId).orElseThrow(()->new BadClientRequestException("Instructor Id not valid"));
+        return bookingRepository.findTopCourseByRevenueAndInstructorId(BookingStatus.PAID, instructorId, Pageable.ofSize(top));
+    }
+
+    public List<RatingCountDTO> getInstructorRatingDistribution(UUID instructorId){
+        return feedbackRepository.findRatingDistributionByInstructor(instructorId).stream()
+                .map(dto -> new RatingCountDTO(dto.getRating(), dto.getCount()))
+                .toList();
     }
 
     @Override

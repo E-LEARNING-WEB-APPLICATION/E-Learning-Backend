@@ -57,6 +57,15 @@ public class NotificationController {
         return ResponseEntity.ok(new ApiResponse(true, "notification marked read successfully"));
     }
 
+    @DeleteMapping("/{notificationId}")
+    public ResponseEntity<ApiResponse> markNotificationDeleted(
+            @AuthenticationPrincipal JWTDTO jwtdto,
+            @PathVariable UUID notificationId
+    ) {
+        notificationService.updateNotificationDeleted(jwtdto.getUserId(), notificationId);
+        return ResponseEntity.ok(new ApiResponse(true, "notification deleted successfully"));
+    }
+
     @GetMapping("/count")
     public ResponseEntity<?> getNotificationCount(
             @AuthenticationPrincipal JWTDTO jwtdto,

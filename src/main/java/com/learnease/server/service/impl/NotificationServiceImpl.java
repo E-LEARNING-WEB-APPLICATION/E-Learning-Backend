@@ -116,6 +116,17 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRecipientRepository.save(nr);
     }
 
+    @Transactional
+    @Override
+    public void updateNotificationDeleted(UUID userId, UUID notificationId) {
+        NotificationRecipient nr = notificationRecipientRepository.findByNotificationIdAndRecipientId(notificationId, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("notification not found"));
+        if (!nr.getRecipient().getId().equals(userId)) throw new BadClientRequestException("Invalid access to notification");
+        nr.setDeleted(true);
+        nr.setUpdatedAt(LocalDateTime.now());
+        notificationRecipientRepository.save(nr);
+    }
+
 
     @Override
     public Page<NotificationResponseDTO> getUserNotifications(UUID userAuthId, Pageable pageable) {

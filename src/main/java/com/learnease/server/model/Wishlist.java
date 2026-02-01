@@ -30,4 +30,6 @@ public class Wishlist extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
+
+    private boolean isPurchased = false;
 }

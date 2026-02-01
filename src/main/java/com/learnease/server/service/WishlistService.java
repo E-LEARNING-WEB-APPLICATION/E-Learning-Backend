@@ -10,6 +10,8 @@ public interface WishlistService {
 
     void removeFromWishlist(UUID authId, UUID courseId);
 
+    void markCoursePurchased(UUID authId, UUID courseId);
+
     List<WishlistResponseDto> getWishlist(UUID authId);
 
     long getWishlistCount(UUID authId);

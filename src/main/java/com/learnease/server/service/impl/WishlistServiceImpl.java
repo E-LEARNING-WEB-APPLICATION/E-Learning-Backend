@@ -68,10 +68,20 @@ public class WishlistServiceImpl implements WishlistService {
     }
 
     @Override
+    public void markCoursePurchased(UUID authId, UUID courseId){
+        Student student = getStudentFromAuthId(authId);
+
+        Course course = courseRepository.findById(courseId)
+                .orElseThrow(() -> new CourseNotFoundException(courseId));
+
+        wishlistRepository.findByStudentAndCourse(student, course).setPurchased(true);
+    }
+
+    @Override
     public List<WishlistResponseDto> getWishlist(UUID authId) {
 
         Student student = getStudentFromAuthId(authId);
-        return wishlistRepository.findByStudent(student)
+        return wishlistRepository.findByStudentAndIsPurchasedFalse(student)
                 .stream()
                 .map(wishlistMapper::toResponseDto)
                 .toList();
@@ -81,6 +91,6 @@ public class WishlistServiceImpl implements WishlistService {
     public long getWishlistCount(UUID authId) {
 
         Student student = getStudentFromAuthId(authId);
-        return wishlistRepository.countByStudent(student);
+        return wishlistRepository.countByStudentAndIsPurchasedFalse(student);
     }
 }

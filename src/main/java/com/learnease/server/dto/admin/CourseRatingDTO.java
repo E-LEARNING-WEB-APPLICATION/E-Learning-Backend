@@ -1,10 +1,12 @@
 package com.learnease.server.dto.admin;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.UUID;
 
 @AllArgsConstructor
+@Getter
 public class CourseRatingDTO {
     private UUID courseId;
     private String title;
