@@ -3,7 +3,7 @@ name: Backend CI - Build Only
 on:
   push:
     branches:
-      - ci-test
+      - test/ci-test
   workflow_dispatch:
 
 jobs:
