@@ -24,5 +24,6 @@ public class CoursesDto {
         private String thumbnail;
         private String introVideo;
         private int hour;
+        private boolean published;
 
 }

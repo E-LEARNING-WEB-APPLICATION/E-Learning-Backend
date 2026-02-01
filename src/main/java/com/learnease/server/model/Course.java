@@ -49,4 +49,13 @@ public class Course extends BaseEntity{
     @ManyToOne
     @JoinColumn(name = "instructor_id")
     private Instructor instructor;
+
+
+    @Column(
+            name = "is_published",
+            nullable = false,
+            columnDefinition = "BOOLEAN DEFAULT FALSE"
+    )
+    private boolean isPublished;
+
 }

@@ -27,7 +27,8 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
             c.discount,
             c.thumbnail,
             c.introVideo,
-            c.hour
+            c.hour,
+            c.isPublished
         )
         FROM Course c
         WHERE c.instructor.id = :instructorId

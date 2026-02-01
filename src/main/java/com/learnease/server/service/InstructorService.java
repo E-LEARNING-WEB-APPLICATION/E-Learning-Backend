@@ -51,4 +51,6 @@ public interface InstructorService {
     List<StudentListDto> getStudentsList(UUID userId,UUID courseId) ;
 
     List<InstructorSummaryDTO> getAllInstructorsSummary();
+
+    boolean setCoursePublished(UUID courseId, boolean isPublished, UUID userId);
 }

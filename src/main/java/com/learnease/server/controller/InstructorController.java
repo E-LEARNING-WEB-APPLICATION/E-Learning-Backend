@@ -255,4 +255,17 @@ public class InstructorController {
         return ResponseEntity.ok(instructorService.getAllInstructorsSummary());
     }
 
+
+    @PreAuthorize("hasRole('INSTRUCTOR')")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/changePublish/{courseId}")
+    public ResponseEntity<?> updatePublish(@PathVariable UUID courseId,@RequestParam boolean isPublished,@AuthenticationPrincipal JWTDTO dto)
+    {
+       boolean res = instructorService.setCoursePublished(courseId,isPublished,dto.getUserId());
+       return  ResponseEntity.ok().body(res);
+
+    }
+
+
+
 }
