@@ -1,0 +1,80 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  devtools:
+    restart:
+      enabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+  thymeleaf:
+    cache: true
+    prefix: classpath:/templates/
+    suffix: .html
+
+server:
+  port: 8080
+
+# -----------------------
+# Application Config
+# -----------------------
+app:
+  admin_email: ${ADMIN_EMAIL}
+  admin_pass: ${ADMIN_PASS}
+
+# -----------------------
+# JWT
+# -----------------------
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+# -----------------------
+# AWS S3
+# -----------------------
+aws:
+  bucket:
+    name: ${AWS_BUCKET_NAME}
+  region: ${AWS_REGION}
+
+# -----------------------
+# File Upload
+# -----------------------
+servlet:
+  multipart:
+    enabled: true
+    max-file-size: 200MB
+    max-request-size: 250MB
+
+# -----------------------
+# Logging
+# -----------------------
+logging:
+  level:
+    root: INFO
+    org.springframework.security: INFO
+    org.springframework.web.reactive.function.client.ExchangeFunctions: INFO
+
+# -----------------------
+# Razorpay
+# -----------------------
+razorpay:
+  key-id: ${RAZORPAY_KEY_ID}
+  key-secret: ${RAZORPAY_KEY_SECRET}
+
+# -----------------------
+# Email Service (.NET)
+# -----------------------
+email:
+  service:
+    base-url: ${EMAIL_SERVICE_BASE_URL}
