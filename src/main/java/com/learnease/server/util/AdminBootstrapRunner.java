@@ -44,7 +44,8 @@ public class AdminBootstrapRunner implements CommandLineRunner {
                     adminEmail,
                     passwordEncoder.encode(adminPass),
                     Role.ADMIN,
-                    Status.ACTIVE
+                    Status.ACTIVE,
+                    true
             );
 
             UserDetails adminDetails = new UserDetails()

@@ -51,11 +51,12 @@ public class UserAuth extends BaseEntity implements UserDetails {
     @PastOrPresent(message = "Last login time cannot be in the future")
     private LocalDateTime lastLoginAt;
 
-    public UserAuth(String email, String password, Role role, Status status) {
+    public UserAuth(String email, String password, Role role, Status status, boolean isEmailVerified) {
         this.email = email;
         this.password = password;
         this.role = role;
         this.status = status;
+        this.emailVerified = isEmailVerified;
     }
 
     @Override
