@@ -74,7 +74,8 @@ public class WishlistServiceImpl implements WishlistService {
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new CourseNotFoundException(courseId));
 
-        wishlistRepository.findByStudentAndCourse(student, course).setPurchased(true);
+        Wishlist item = wishlistRepository.findByStudentAndCourse(student, course);
+        if(item!=null) item.setPurchased(true);
     }
 
     @Override
