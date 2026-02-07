@@ -31,6 +31,12 @@ server:
 app:
   admin_email: ${ADMIN_EMAIL}
   admin_pass: ${ADMIN_PASS}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}
+    allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+    allowed-headers: *
+    allow-credentials: true
+    max-age: 3600
 
 # -----------------------
 # JWT

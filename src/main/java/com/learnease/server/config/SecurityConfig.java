@@ -30,6 +30,7 @@ public class SecurityConfig {
 
     //first add the filter
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CorsProperties corsProperties;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -86,25 +87,18 @@ public class SecurityConfig {
      */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173",
-                "http://localhost:8080",
-                "http://localhost:80",
-                "http://localhost",
-                "http://16.16.79.219:80",
-                "http://16.16.79.219"
-        ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-        //UrlBasedCorsConfigurationSource this is the class which is implimenting the
-        //CorsConfigurationSource interface
+        // Apply properties from application.properties
+        config.setAllowedOrigins(corsProperties.getAllowedOrigins());
+        config.setAllowedMethods(corsProperties.getAllowedMethods());
+        config.setAllowedHeaders(corsProperties.getAllowedHeaders());
+        config.setAllowCredentials(corsProperties.getAllowCredentials());
+        config.setMaxAge(corsProperties.getMaxAge());
+
+        // Register the configuration for all paths (/**)
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 
